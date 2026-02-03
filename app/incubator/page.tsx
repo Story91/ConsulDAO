@@ -19,8 +19,6 @@ import {
 import { 
   Rocket, 
   Sparkles, 
-  Zap, 
-  Plus, 
   Coins, 
   Shield, 
   Droplets,
@@ -222,11 +220,6 @@ export default function IncubatorPage() {
     setIsLoading(false);
   };
 
-  const startNewProject = () => {
-    setSession(null);
-    setMessages([]);
-    setSuggestions(["Start my project", "How does it work?", "What is ConsulDAO?"]);
-  };
 
   // Calculate progress
   const completedSteps = session?.actions.filter(a => a.status === "completed").length || 0;
@@ -246,16 +239,11 @@ export default function IncubatorPage() {
         >
           <div className="w-80 flex flex-col h-full">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <Button 
-                onClick={startNewProject}
-                variant="outline" 
-                size="sm"
-                className="flex-1 justify-start gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New Project
-              </Button>
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="font-bold text-lg flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-primary" />
+                Incubation Status
+              </h2>
             </div>
 
             {/* Project Status */}
@@ -390,30 +378,7 @@ export default function IncubatorPage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="p-4 border-t border-gray-200 space-y-2">
-              <Button
-                variant="default"
-                className="w-full"
-                onClick={() => handleSendMessage("Start my project")}
-                disabled={!!session || !isConnected}
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Start Project
-              </Button>
-              {session && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => handleSendMessage("Continue")}
-                  disabled={isLoading}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Continue
-                </Button>
-              )}
             </div>
-          </div>
         </div>
 
         {/* Toggle Sidebar Button */}

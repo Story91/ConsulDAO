@@ -48,7 +48,7 @@ export default function RootLayout({
           <IridescenceBackground />
           <SafeArea>
             <div className="min-h-screen w-full relative z-10">
-              {children}
+            {children}
             </div>
           </SafeArea>
         </body>
