@@ -157,25 +157,25 @@ export default function ProjectsPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            <Card className="text-center">
+            <Card className="text-center bg-white/90 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold text-primary">$5.3M+</p>
                 <p className="text-sm text-muted-foreground">Total Raised</p>
               </CardContent>
             </Card>
-            <Card className="text-center">
+            <Card className="text-center bg-white/90 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold">{projects.length}</p>
                 <p className="text-sm text-muted-foreground">Projects</p>
               </CardContent>
             </Card>
-            <Card className="text-center">
+            <Card className="text-center bg-white/90 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold">38</p>
                 <p className="text-sm text-muted-foreground">Team Members</p>
               </CardContent>
             </Card>
-            <Card className="text-center">
+            <Card className="text-center bg-white/90 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold">2</p>
                 <p className="text-sm text-muted-foreground">Launched</p>
@@ -202,7 +202,7 @@ export default function ProjectsPage() {
               return (
                 <Card 
                   key={project.id} 
-                  className="group hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+                  className="group hover:border-primary/30 hover:shadow-lg transition-all duration-300 bg-white/90 backdrop-blur-sm"
                 >
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between mb-3">

@@ -15,7 +15,7 @@ interface IncubationStatusProps {
 export function IncubationStatus({ session }: IncubationStatusProps) {
   if (!session) {
     return (
-      <Card className="border-dashed">
+      <Card className="border-dashed bg-white/90 backdrop-blur-sm">
         <CardContent className="p-6 text-center">
           <p className="text-muted-foreground">
             No active incubation session. Start by telling the agent about your project.
@@ -30,7 +30,7 @@ export function IncubationStatus({ session }: IncubationStatusProps) {
   const progress = (completedActions.length / INCUBATION_FLOW.length) * 100;
 
   return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+    <Card className="border-primary/20 bg-white/90 backdrop-blur-sm">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
