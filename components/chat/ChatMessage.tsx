@@ -5,14 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CheckCircle, Loader2, XCircle, Clock, Bot, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface ChatMessageProps {
   message: ChatMessageType;
+  ensName?: string | null;
+  ensAvatar?: string | null;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, ensName, ensAvatar }: ChatMessageProps) {
   const isAgent = message.role === "agent";
   const isSystem = message.role === "system";
+  const isUser = !isAgent && !isSystem;
 
   return (
     <div
@@ -30,9 +34,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
       <div
         className={cn(
           "max-w-[80%] space-y-2",
-          !isAgent && !isSystem && "order-first"
+          isUser && "order-first"
         )}
       >
+        {/* ENS Name label for user messages */}
+        {isUser && ensName && (
+          <p className="text-xs text-muted-foreground text-right px-1 font-medium">
+            {ensName}
+          </p>
+        )}
+        
         <Card
           className={cn(
             "p-4",
@@ -57,9 +68,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </p>
       </div>
 
-      {!isAgent && !isSystem && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-          <User className="w-4 h-4 text-secondary-foreground" />
+      {isUser && (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
+          {ensAvatar ? (
+            <Image 
+              src={ensAvatar} 
+              alt={ensName || "User avatar"} 
+              width={32} 
+              height={32}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <User className="w-4 h-4 text-secondary-foreground" />
+          )}
         </div>
       )}
     </div>

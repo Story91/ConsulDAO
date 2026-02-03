@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
+import { useAccount, useChainId, useSwitchChain, useEnsName, useEnsAvatar } from "wagmi";
+import { baseSepolia, mainnet } from "wagmi/chains";
 import { Navbar } from "@/components/Navbar";
 import { ChatMessage, ChatInput } from "@/components/chat";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,19 @@ export default function IncubatorPage() {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
+  
+  // ENS Resolution - reads from Ethereum mainnet automatically
+  const { data: ensName } = useEnsName({ 
+    address,
+    chainId: mainnet.id, // Always query mainnet for ENS
+  });
+  const { data: ensAvatar } = useEnsAvatar({ 
+    name: ensName ?? undefined,
+    chainId: mainnet.id,
+  });
+  
+  // Display name: ENS name if available, otherwise shortened address
+  const displayName = ensName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "User");
   
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [session, setSession] = useState<IncubationSession | null>(null);
@@ -228,9 +241,13 @@ export default function IncubatorPage() {
   // Welcome message on mount
   useEffect(() => {
     if (messages.length === 0 && isConnected) {
+      const greeting = ensName 
+        ? `👋 Welcome back, **${ensName}**!` 
+        : `👋 Welcome to ConsulDAO Incubator!`;
+      
       const welcomeMessage = createChatMessage(
         "agent",
-        `👋 Welcome to ConsulDAO Incubator!\n\nI'm your AI incubation assistant. I'll guide you through launching your project on Base.\n\nSay **"Start my project"** to begin!`
+        `${greeting}\n\nI'm your AI incubation assistant. I'll guide you through launching your project on Base.\n\nSay **"Start my project"** to begin!`
       );
       setMessages([welcomeMessage]);
       setSuggestions(["Start my project", "How does it work?", "What is ConsulDAO?"]);
@@ -241,7 +258,7 @@ export default function IncubatorPage() {
       );
       setMessages([connectMessage]);
     }
-  }, [isConnected, messages.length]);
+  }, [isConnected, messages.length, ensName]);
 
   const handleSendMessage = async (content: string) => {
     if (!isConnected || !address) {
@@ -276,9 +293,10 @@ export default function IncubatorPage() {
         const newSession = createIncubationSession(projectName, address);
         setSession(newSession);
 
+        const nameGreeting = ensName ? `, ${ensName}` : "";
         const response = createChatMessage(
           "agent",
-          `🚀 Great! Let's launch **"${projectName}"**!\n\nFirst, choose your ENS subdomain.\n\nYour project identity will be: \`yourname.consul.eth\`\n\n**Enter the name you want** (lowercase, 3-32 chars):`
+          `🚀 Great${nameGreeting}! Let's launch **"${projectName}"**!\n\nFirst, choose your project identity.\n\nYour on-chain identity will be registered as: \`projectname.consul\`\n\n**Enter the name you want** (lowercase, 3-32 chars):`
         );
 
         setMessages((prev) => [...prev, response]);
@@ -568,7 +586,12 @@ export default function IncubatorPage() {
               /* Messages List */
               <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
                 {messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
+                  <ChatMessage 
+                    key={message.id} 
+                    message={message}
+                    ensName={message.role === "user" ? ensName : undefined}
+                    ensAvatar={message.role === "user" ? ensAvatar : undefined}
+                  />
                 ))}
                 {isLoading && (
                   <div className="flex items-center gap-3 text-muted-foreground p-4">
