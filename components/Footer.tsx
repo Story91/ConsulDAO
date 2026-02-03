@@ -6,9 +6,9 @@ import { Github, Twitter, MessageCircle } from "lucide-react";
 
 const footerLinks = {
   product: [
-    { label: "Features", href: "#features" },
+    { label: "Projects", href: "/projects" },
     { label: "AI Incubator", href: "/incubator" },
-    { label: "How it works", href: "#features" },
+    { label: "Features", href: "#features" },
   ],
   developers: [
     { label: "GitHub", href: "https://github.com/consuldao" },
