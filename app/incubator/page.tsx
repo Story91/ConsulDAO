@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useAccount } from "wagmi";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
 import { Navbar } from "@/components/Navbar";
 import { ChatMessage, ChatInput } from "@/components/chat";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   type ChatMessage as ChatMessageType,
   type IncubationSession,
+  type AgentAction,
   createChatMessage,
   createIncubationSession,
   generateAgentResponse,
@@ -16,6 +18,8 @@ import {
   INCUBATION_FLOW,
   formatUSDC,
 } from "@/lib/agent";
+import { useRegisterProject, isContractDeployed } from "@/hooks/useProjectRegistry";
+import { createProjectManifest } from "@/lib/ens";
 import { 
   Rocket, 
   Sparkles, 
@@ -27,14 +31,20 @@ import {
   Loader2,
   Settings,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  Wallet
 } from "lucide-react";
 
 export default function IncubatorPage() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+  const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
+  
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [session, setSession] = useState<IncubationSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingAction, setPendingAction] = useState<AgentAction | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([
     "Start my project",
     "What is ConsulDAO?",
@@ -43,12 +53,177 @@ export default function IncubatorPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  // Project Registration Hook - REAL blockchain transaction
+  const { 
+    registerProject, 
+    status: registrationStatus, 
+    txHash: registrationTxHash,
+    isConfirming: isRegistrationConfirming,
+    isSuccess: isRegistrationSuccess,
+    error: registrationError,
+    reset: resetRegistration
+  } = useRegisterProject();
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Handle project registration success
+  useEffect(() => {
+    if (isRegistrationSuccess && registrationTxHash && pendingAction?.type === "mint_ens") {
+      const completedAction: AgentAction = {
+        ...pendingAction,
+        status: "completed",
+        txHash: registrationTxHash,
+      };
+
+      setSession((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          actions: [...prev.actions, completedAction],
+          isEnsRegistered: true,
+          stage: "screening",
+        };
+      });
+
+      const successMessage = createChatMessage(
+        "agent",
+        `✅ **Project Identity Registered On-Chain!**\n\nYour project now has an on-chain identity!\n\nType **"continue"** for the next step.`,
+        completedAction
+      );
+      setMessages((prev) => [...prev, successMessage]);
+      setSuggestions(["Continue", "Check status"]);
+      setPendingAction(null);
+      resetRegistration();
+    }
+  }, [isRegistrationSuccess, registrationTxHash, pendingAction, resetRegistration]);
+
+  // Handle project registration error
+  useEffect(() => {
+    if (registrationError && pendingAction?.type === "mint_ens") {
+      const errorMessage = createChatMessage(
+        "agent",
+        `❌ **Registration Failed**\n\n${registrationError.message}\n\nPlease try again or check your wallet.`
+      );
+      setMessages((prev) => [...prev, errorMessage]);
+      setSuggestions(["Try again", "Check status"]);
+      setPendingAction(null);
+      resetRegistration();
+    }
+  }, [registrationError, pendingAction, resetRegistration]);
+
+  // Execute action - routes to real implementations
+  const executeAction = useCallback(async (action: AgentAction) => {
+    console.log("[executeAction] Action type:", action.type, "Session:", !!session, "Address:", !!address);
+    
+    if (action.type === "mint_ens") {
+      // Real project registration on-chain
+      if (!session || !address) {
+        console.error("[executeAction] Missing session or address for registration");
+        await simulateAction(action);
+        return;
+      }
+
+      // Check if contract is deployed
+      if (!isContractDeployed()) {
+        console.error("[executeAction] ProjectRegistry contract not deployed");
+        const errorMessage = createChatMessage(
+          "agent",
+          `⚠️ **Contract Not Deployed**\n\nThe ProjectRegistry contract needs to be deployed first.\n\nRun: \`npm run deploy:sepolia\``
+        );
+        setMessages((prev) => [...prev, errorMessage]);
+        return;
+      }
+      
+      console.log("[executeAction] Calling real project registration...");
+      
+      setPendingAction(action);
+
+      // Extract project name from ensName (e.g., "defi-hub.consul.eth" -> "defi-hub")
+      const projectId = session.ensName?.split(".")[0] || session.projectName.toLowerCase().replace(/\s+/g, "-");
+
+      // Show wallet prompt message
+      const walletMessage = createChatMessage(
+        "agent",
+        `🔷 **Registering Project On-Chain**\n\nPlease approve the transaction in your wallet to register:\n\n\`${projectId}\`\n\n⏳ Waiting for wallet signature...`
+      );
+      setMessages((prev) => [...prev, walletMessage]);
+
+      try {
+        const manifest = createProjectManifest({
+          name: session.projectName,
+          description: `${session.projectName} - Incubated by ConsulDAO`,
+          founder: address,
+          stage: session.stage,
+        });
+
+        console.log("[executeAction] Calling registerProject with:", projectId);
+        
+        await registerProject({
+          name: projectId,
+          manifest: manifest,
+        });
+
+        // Show confirming message
+        const confirmingMessage = createChatMessage(
+          "agent",
+          `⏳ **Transaction submitted!**\n\nWaiting for confirmation on Base Sepolia...`
+        );
+        setMessages((prev) => [...prev, confirmingMessage]);
+      } catch (err) {
+        console.error("[executeAction] Registration error:", err);
+        // Error is handled by the useEffect
+      }
+      return;
+    }
+    
+    // Fallback to simulated action for other types
+    await simulateAction(action);
+  }, [session, address, registerProject]);
+
+  // Simulated action for non-ENS actions (temporary)
+  const simulateAction = async (action: AgentAction) => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    const completedAction: AgentAction = {
+      ...action,
+      status: "completed",
+      txHash: `0x${Math.random().toString(16).slice(2, 66)}`,
+    };
+
+    setSession((prev) => {
+      if (!prev) return null;
+      const newActions = [...prev.actions, completedAction];
+      
+      const updates: Partial<IncubationSession> = { actions: newActions };
+      
+      if (completedAction.type === "setup_treasury") {
+        updates.usdcBalance = prev.config.treasuryAmount || 0;
+      } else if (completedAction.type === "deploy_pool") {
+        updates.isPoolDeployed = true;
+      } else if (completedAction.type === "lock_liquidity") {
+        updates.isAntiRugActive = true;
+      }
+      
+      if (newActions.length <= 2) updates.stage = "screening";
+      else if (newActions.length <= 4) updates.stage = "incubating";
+      else if (newActions.length <= 5) updates.stage = "launching";
+      else updates.stage = "launched";
+      
+      return { ...prev, ...updates };
+    });
+
+    const successMessage = createChatMessage(
+      "agent",
+      `✅ **${getActionDescription(completedAction.type)}** completed!\n\nTx: \`${completedAction.txHash?.slice(0, 10)}...${completedAction.txHash?.slice(-6)}\`\n\nType **"continue"** for the next step.`
+    );
+    setMessages((prev) => [...prev, successMessage]);
+    setSuggestions(["Continue", "Check status"]);
+  };
 
   // Welcome message on mount
   useEffect(() => {
@@ -167,48 +342,8 @@ export default function IncubatorPage() {
       const actionMessage = createChatMessage("agent", agentResponse.message, agentResponse.action);
       setMessages((prev) => [...prev, actionMessage]);
 
-      // Simulate action execution
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Complete the action
-      const completedAction = { 
-        ...agentResponse.action, 
-        status: "completed" as const, 
-        txHash: `0x${Math.random().toString(16).slice(2, 66)}` 
-      };
-      
-      setSession((prev) => {
-        if (!prev) return null;
-        const newActions = [...prev.actions, completedAction];
-        
-        // Update status based on action type
-        const updates: Partial<IncubationSession> = { actions: newActions };
-        
-        if (completedAction.type === "mint_ens") {
-          updates.isEnsRegistered = true;
-        } else if (completedAction.type === "setup_treasury") {
-          updates.usdcBalance = prev.config.treasuryAmount || 0;
-        } else if (completedAction.type === "deploy_pool") {
-          updates.isPoolDeployed = true;
-        } else if (completedAction.type === "lock_liquidity") {
-          updates.isAntiRugActive = true;
-        }
-        
-        // Update stage
-        if (newActions.length <= 2) updates.stage = "screening";
-        else if (newActions.length <= 4) updates.stage = "incubating";
-        else if (newActions.length <= 5) updates.stage = "launching";
-        else updates.stage = "launched";
-        
-        return { ...prev, ...updates };
-      });
-
-      const successMessage = createChatMessage(
-        "agent",
-        `✅ **${getActionDescription(completedAction.type)}** completed!\n\nTx: \`${completedAction.txHash?.slice(0, 10)}...${completedAction.txHash?.slice(-6)}\`\n\nType **"continue"** for the next step.`
-      );
-      setMessages((prev) => [...prev, successMessage]);
-      setSuggestions(["Continue", "Check status"]);
+      // Execute the action (real blockchain tx for ENS, simulated for others)
+      await executeAction(agentResponse.action);
     } else {
       const responseMessage = createChatMessage("agent", agentResponse.message);
       setMessages((prev) => [...prev, responseMessage]);
@@ -229,8 +364,25 @@ export default function IncubatorPage() {
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
       
+      {/* Wrong Network Warning */}
+      {isWrongNetwork && (
+        <div className="fixed top-16 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 flex items-center justify-center gap-4">
+          <span className="font-medium">
+            ⚠️ Wrong network! Please switch to Base Sepolia to use the incubator.
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => switchChain({ chainId: baseSepolia.id })}
+            className="bg-white text-amber-600 hover:bg-amber-50"
+          >
+            Switch to Base Sepolia
+          </Button>
+        </div>
+      )}
+      
       {/* Main Container */}
-      <div className="flex-1 flex pt-16 overflow-hidden">
+      <div className={`flex-1 flex pt-16 overflow-hidden ${isWrongNetwork ? "mt-12" : ""}`}>
         {/* Left Sidebar - Status Panel */}
         <div 
           className={`bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ${
