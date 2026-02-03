@@ -27,17 +27,6 @@ export function Hero() {
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-20">
         <div className="text-center">
-          {/* Badge */}
-          <div className="animate-slide-up opacity-0 stagger-1">
-            <Badge 
-              variant="outline" 
-              className="mb-6 px-4 py-2 text-sm font-medium border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Built on Base L2
-            </Badge>
-          </div>
-
           {/* Main headline */}
           <h1 className="animate-slide-up opacity-0 stagger-2 text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight mb-6">
             <span className="block">From Idea to</span>

@@ -3,6 +3,7 @@ import { Inter, Source_Code_Pro } from "next/font/google";
 import { SafeArea } from "@coinbase/onchainkit/minikit";
 import { minikitConfig } from "@/minikit.config";
 import { RootProvider } from "./rootProvider";
+import { IridescenceBackground } from "@/components/IridescenceBackground";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -44,8 +45,9 @@ export default function RootLayout({
     <RootProvider>
       <html lang="en">
         <body className={`${inter.variable} ${sourceCodePro.variable}`}>
+          <IridescenceBackground />
           <SafeArea>
-            <div className="min-h-screen w-full">
+            <div className="min-h-screen w-full relative z-10">
               {children}
             </div>
           </SafeArea>
