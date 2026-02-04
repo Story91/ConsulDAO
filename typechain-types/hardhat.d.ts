@@ -18,21 +18,117 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
+      name: "IERC1363",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC1363__factory>;
+    getContractFactory(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
+    getContractFactory(
+      name: "SafeERC20",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SafeERC20__factory>;
+    getContractFactory(
+      name: "IERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC165__factory>;
     getContractFactory(
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrancyGuard__factory>;
     getContractFactory(
+      name: "IERC20Minimal",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20Minimal__factory>;
+    getContractFactory(
+      name: "IERC6909Claims",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC6909Claims__factory>;
+    getContractFactory(
+      name: "IExtsload",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExtsload__factory>;
+    getContractFactory(
+      name: "IExttload",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExttload__factory>;
+    getContractFactory(
+      name: "IHooks",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IHooks__factory>;
+    getContractFactory(
+      name: "IPoolManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IPoolManager__factory>;
+    getContractFactory(
+      name: "IProtocolFees",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IProtocolFees__factory>;
+    getContractFactory(
+      name: "CustomRevert",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CustomRevert__factory>;
+    getContractFactory(
+      name: "Hooks",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Hooks__factory>;
+    getContractFactory(
+      name: "LPFeeLibrary",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LPFeeLibrary__factory>;
+    getContractFactory(
+      name: "SafeCast",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SafeCast__factory>;
+    getContractFactory(
+      name: "BalanceDeltaLibrary",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BalanceDeltaLibrary__factory>;
+    getContractFactory(
+      name: "BeforeSwapDeltaLibrary",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BeforeSwapDeltaLibrary__factory>;
+    getContractFactory(
+      name: "CurrencyLibrary",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurrencyLibrary__factory>;
+    getContractFactory(
+      name: "ImmutableState",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ImmutableState__factory>;
+    getContractFactory(
+      name: "IImmutableState",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IImmutableState__factory>;
+    getContractFactory(
+      name: "BaseHook",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BaseHook__factory>;
+    getContractFactory(
+      name: "AntiRugHook",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AntiRugHook__factory>;
+    getContractFactory(
+      name: "Fundraiser",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Fundraiser__factory>;
+    getContractFactory(
       name: "HubDAO",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.HubDAO__factory>;
     getContractFactory(
+      name: "ISquads",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISquads__factory>;
+    getContractFactory(
       name: "ProjectRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ProjectRegistry__factory>;
+    getContractFactory(
+      name: "Squads",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Squads__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -40,46 +136,262 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
     getContractAt(
+      name: "IERC1363",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC1363>;
+    getContractAt(
       name: "IERC20",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "SafeERC20",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SafeERC20>;
+    getContractAt(
+      name: "IERC165",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC165>;
     getContractAt(
       name: "ReentrancyGuard",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrancyGuard>;
     getContractAt(
+      name: "IERC20Minimal",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20Minimal>;
+    getContractAt(
+      name: "IERC6909Claims",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC6909Claims>;
+    getContractAt(
+      name: "IExtsload",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExtsload>;
+    getContractAt(
+      name: "IExttload",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExttload>;
+    getContractAt(
+      name: "IHooks",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IHooks>;
+    getContractAt(
+      name: "IPoolManager",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IPoolManager>;
+    getContractAt(
+      name: "IProtocolFees",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IProtocolFees>;
+    getContractAt(
+      name: "CustomRevert",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CustomRevert>;
+    getContractAt(
+      name: "Hooks",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Hooks>;
+    getContractAt(
+      name: "LPFeeLibrary",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LPFeeLibrary>;
+    getContractAt(
+      name: "SafeCast",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SafeCast>;
+    getContractAt(
+      name: "BalanceDeltaLibrary",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BalanceDeltaLibrary>;
+    getContractAt(
+      name: "BeforeSwapDeltaLibrary",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BeforeSwapDeltaLibrary>;
+    getContractAt(
+      name: "CurrencyLibrary",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurrencyLibrary>;
+    getContractAt(
+      name: "ImmutableState",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ImmutableState>;
+    getContractAt(
+      name: "IImmutableState",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IImmutableState>;
+    getContractAt(
+      name: "BaseHook",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BaseHook>;
+    getContractAt(
+      name: "AntiRugHook",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AntiRugHook>;
+    getContractAt(
+      name: "Fundraiser",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Fundraiser>;
+    getContractAt(
       name: "HubDAO",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.HubDAO>;
     getContractAt(
+      name: "ISquads",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISquads>;
+    getContractAt(
       name: "ProjectRegistry",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.ProjectRegistry>;
+    getContractAt(
+      name: "Squads",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Squads>;
 
     deployContract(
       name: "Ownable",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Ownable>;
     deployContract(
+      name: "IERC1363",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC1363>;
+    deployContract(
       name: "IERC20",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC20>;
+    deployContract(
+      name: "SafeERC20",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.SafeERC20>;
+    deployContract(
+      name: "IERC165",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC165>;
     deployContract(
       name: "ReentrancyGuard",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrancyGuard>;
     deployContract(
+      name: "IERC20Minimal",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20Minimal>;
+    deployContract(
+      name: "IERC6909Claims",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC6909Claims>;
+    deployContract(
+      name: "IExtsload",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IExtsload>;
+    deployContract(
+      name: "IExttload",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IExttload>;
+    deployContract(
+      name: "IHooks",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IHooks>;
+    deployContract(
+      name: "IPoolManager",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IPoolManager>;
+    deployContract(
+      name: "IProtocolFees",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IProtocolFees>;
+    deployContract(
+      name: "CustomRevert",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CustomRevert>;
+    deployContract(
+      name: "Hooks",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Hooks>;
+    deployContract(
+      name: "LPFeeLibrary",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LPFeeLibrary>;
+    deployContract(
+      name: "SafeCast",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.SafeCast>;
+    deployContract(
+      name: "BalanceDeltaLibrary",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BalanceDeltaLibrary>;
+    deployContract(
+      name: "BeforeSwapDeltaLibrary",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BeforeSwapDeltaLibrary>;
+    deployContract(
+      name: "CurrencyLibrary",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CurrencyLibrary>;
+    deployContract(
+      name: "ImmutableState",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ImmutableState>;
+    deployContract(
+      name: "IImmutableState",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IImmutableState>;
+    deployContract(
+      name: "BaseHook",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BaseHook>;
+    deployContract(
+      name: "AntiRugHook",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AntiRugHook>;
+    deployContract(
+      name: "Fundraiser",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Fundraiser>;
+    deployContract(
       name: "HubDAO",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.HubDAO>;
     deployContract(
+      name: "ISquads",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISquads>;
+    deployContract(
       name: "ProjectRegistry",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ProjectRegistry>;
+    deployContract(
+      name: "Squads",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Squads>;
 
     deployContract(
       name: "Ownable",
@@ -87,25 +399,145 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Ownable>;
     deployContract(
+      name: "IERC1363",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC1363>;
+    deployContract(
       name: "IERC20",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC20>;
+    deployContract(
+      name: "SafeERC20",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.SafeERC20>;
+    deployContract(
+      name: "IERC165",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC165>;
     deployContract(
       name: "ReentrancyGuard",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrancyGuard>;
     deployContract(
+      name: "IERC20Minimal",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20Minimal>;
+    deployContract(
+      name: "IERC6909Claims",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC6909Claims>;
+    deployContract(
+      name: "IExtsload",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IExtsload>;
+    deployContract(
+      name: "IExttload",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IExttload>;
+    deployContract(
+      name: "IHooks",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IHooks>;
+    deployContract(
+      name: "IPoolManager",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IPoolManager>;
+    deployContract(
+      name: "IProtocolFees",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IProtocolFees>;
+    deployContract(
+      name: "CustomRevert",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CustomRevert>;
+    deployContract(
+      name: "Hooks",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Hooks>;
+    deployContract(
+      name: "LPFeeLibrary",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.LPFeeLibrary>;
+    deployContract(
+      name: "SafeCast",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.SafeCast>;
+    deployContract(
+      name: "BalanceDeltaLibrary",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BalanceDeltaLibrary>;
+    deployContract(
+      name: "BeforeSwapDeltaLibrary",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BeforeSwapDeltaLibrary>;
+    deployContract(
+      name: "CurrencyLibrary",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CurrencyLibrary>;
+    deployContract(
+      name: "ImmutableState",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ImmutableState>;
+    deployContract(
+      name: "IImmutableState",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IImmutableState>;
+    deployContract(
+      name: "BaseHook",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.BaseHook>;
+    deployContract(
+      name: "AntiRugHook",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AntiRugHook>;
+    deployContract(
+      name: "Fundraiser",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Fundraiser>;
+    deployContract(
       name: "HubDAO",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.HubDAO>;
     deployContract(
+      name: "ISquads",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISquads>;
+    deployContract(
       name: "ProjectRegistry",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ProjectRegistry>;
+    deployContract(
+      name: "Squads",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.Squads>;
 
     // default types
     getContractFactory(
