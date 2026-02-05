@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  type AgentAction,
   type IncubationSession,
   type AgentActionType,
   createAgentAction,
@@ -56,6 +55,12 @@ async function handleCreateSession(
     stage: "applied",
     actions: [],
     startedAt: new Date().toISOString(),
+    config: {},
+    conversationStep: "welcome",
+    usdcBalance: 0,
+    isEnsRegistered: false,
+    isPoolDeployed: false,
+    isAntiRugActive: false,
   };
 
   // Create project manifest for ENS
@@ -97,7 +102,7 @@ async function handleExecuteAction(
   const completedCount = session.actions.filter(
     (a) => a.status === "completed"
   ).length + (action.status === "completed" ? 1 : 0);
-  
+
   const newStage = getStageForCompletedActions(completedCount);
 
   return NextResponse.json({

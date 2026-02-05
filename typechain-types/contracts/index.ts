@@ -4,6 +4,9 @@
 import type * as hubDaoSol from "./HubDAO.sol";
 export type { hubDaoSol };
 export type { AntiRugHook } from "./AntiRugHook";
+export type { Buyback } from "./Buyback";
+export type { ConsulStaking } from "./ConsulStaking";
+export type { ConsulToken } from "./ConsulToken";
 export type { Fundraiser } from "./Fundraiser";
 export type { ProjectRegistry } from "./ProjectRegistry";
 export type { Squads } from "./Squads";

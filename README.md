@@ -11,6 +11,39 @@ ConsulDAO is an autonomous incubator that helps Web3 founders launch projects on
 - **USDC Treasury** - Cross-chain treasury management with Circle
 - **Uniswap v4 Integration** - Token swaps and liquidity deployment
 - **Anti-Rug Protection** - On-chain vesting enforced at the DEX level
+- **$CONSUL Governance** - Stake tokens for voting power with lock multipliers
+- **3-Squad Structure** - Admissions, Services, and Treasury Safes
+
+## Governance Model
+
+### $CONSUL Token
+
+The governance token provides voting rights over DAO decisions:
+
+| Feature | Details |
+|---------|---------|
+| Max Supply | 100,000,000 CONSUL |
+| Standard | ERC20 + ERC20Votes |
+| Decimals | 18 |
+
+### Staking & Voting Power
+
+Lock tokens to earn multiplied voting power (veConsul model):
+
+| Lock Period | Multiplier |
+|-------------|------------|
+| None | 1.0x |
+| 3 months | 1.25x |
+| 6 months | 1.5x |
+| 12 months | 2.0x |
+
+### 3-Squad Safe Structure
+
+| Squad | Purpose |
+|-------|---------|
+| Admissions | Decide which projects get incubated |
+| Services | Execute work via agents & contractors |
+| Treasury | Hold and manage DAO funds |
 
 ## How It Works
 
@@ -29,7 +62,7 @@ ConsulDAO is an autonomous incubator that helps Web3 founders launch projects on
 - **UI**: shadcn/ui
 - **Wallet**: OnchainKit
 - **Blockchain**: Base L2
-- **Contracts**: Solidity 0.8.24
+- **Contracts**: Solidity 0.8.24, Hardhat
 
 ## Getting Started
 
@@ -57,7 +90,8 @@ Create a `.env` file:
 ```
 NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_api_key
 NEXT_PUBLIC_HUB_DAO_ADDRESS=0x...
-NEXT_PUBLIC_ANTI_RUG_HOOK_ADDRESS=0x...
+NEXT_PUBLIC_CONSUL_TOKEN_ADDRESS=0x...
+NEXT_PUBLIC_STAKING_ADDRESS=0x...
 ```
 
 ## Project Structure
@@ -65,22 +99,49 @@ NEXT_PUBLIC_ANTI_RUG_HOOK_ADDRESS=0x...
 ```
 consuldao/
 ├── app/
+│   ├── dao/              # DAO dashboard
+│   │   ├── funds/        # Treasury management
+│   │   ├── governance/   # Voting interface
+│   │   └── squads/       # Squad management
 │   ├── incubator/        # AI chat interface
-│   ├── api/agent/        # Agent API
-│   └── page.tsx          # Landing page
-├── components/
-│   ├── chat/             # Chat UI
-│   └── ui/               # UI components
+│   └── api/agent/        # Agent API
 ├── contracts/
-│   ├── AntiRugHook.sol   # Uniswap v4 hook
-│   └── HubDAO.sol        # Treasury contract
+│   ├── ConsulToken.sol   # $CONSUL governance token
+│   ├── ConsulStaking.sol # veConsul staking
+│   ├── Buyback.sol       # Treasury buyback & burn
+│   ├── HubDAO.sol        # Treasury & governance
+│   ├── Squads.sol        # Squad management
+│   └── AntiRugHook.sol   # Uniswap v4 hook
 └── lib/
     ├── agent.ts          # Agent logic
-    ├── ens.ts            # ENS utilities
-    └── circle.ts         # Circle integration
+    └── ens.ts            # ENS utilities
 ```
 
 ## Smart Contracts
+
+### ConsulToken
+
+ERC20 governance token with on-chain vote delegation:
+
+- 100M max supply cap
+- Owner-controlled minting
+- Burnable for buyback mechanism
+
+### ConsulStaking
+
+Stake $CONSUL to earn veConsul voting power:
+
+- Lock period multipliers (1x - 2x)
+- Flexible or time-locked staking
+- Voting power = staked × multiplier
+
+### Buyback
+
+Treasury buyback & burn mechanism:
+
+- Swaps USDC → CONSUL via DEX
+- Burns bought tokens
+- Governance-controlled execution
 
 ### AntiRugHook
 
@@ -90,32 +151,23 @@ A Uniswap v4 hook that prevents founder token dumps during the vesting period:
 - Linear vesting: Gradual unlocking after cliff
 - On-chain enforcement: Works at the DEX level
 
-```solidity
-function beforeSwap(...) external override {
-    if (sender == founder && isSelling) {
-        if (timeElapsed < cliffDuration) {
-            revert VestingPeriodActive(timeRemaining);
-        }
-    }
-}
-```
-
 ### HubDAO
 
 Treasury contract for managing project funds:
 
 - Quarterly budget proposals
-- Multi-sig approval
+- Staking-weighted voting
+- Buyback integration
 - Veto power mechanism
 
 ## Scripts
 
 ```bash
-npm run dev          # Development
-npm run build        # Build
-npm run compile      # Compile contracts
-npm run deploy:sepolia  # Deploy to Base Sepolia
-npm run test         # Run tests
+npm run dev              # Development
+npm run build            # Build
+npm run compile          # Compile contracts
+npm run deploy:sepolia   # Deploy to Base Sepolia
+npm run test             # Run tests
 ```
 
 ## Contributing

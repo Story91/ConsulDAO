@@ -3,6 +3,9 @@
 /* eslint-disable */
 export * as hubDaoSol from "./HubDAO.sol";
 export { AntiRugHook__factory } from "./AntiRugHook__factory";
+export { Buyback__factory } from "./Buyback__factory";
+export { ConsulStaking__factory } from "./ConsulStaking__factory";
+export { ConsulToken__factory } from "./ConsulToken__factory";
 export { Fundraiser__factory } from "./Fundraiser__factory";
 export { ProjectRegistry__factory } from "./ProjectRegistry__factory";
 export { Squads__factory } from "./Squads__factory";

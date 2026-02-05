@@ -20,11 +20,11 @@ import {
 } from "@/lib/agent";
 import { useRegisterProject, isContractDeployed } from "@/hooks/useProjectRegistry";
 import { createProjectManifest } from "@/lib/ens";
-import { 
-  Rocket, 
-  Sparkles, 
-  Coins, 
-  Shield, 
+import {
+  Rocket,
+  Sparkles,
+  Coins,
+  Shield,
   Droplets,
   CheckCircle,
   Circle,
@@ -32,7 +32,7 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  Wallet
+  Wallet as _Wallet
 } from "lucide-react";
 
 export default function IncubatorPage() {
@@ -40,20 +40,20 @@ export default function IncubatorPage() {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
   const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
-  
+
   // ENS Resolution - reads from Ethereum mainnet automatically
-  const { data: ensName } = useEnsName({ 
+  const { data: ensName } = useEnsName({
     address,
     chainId: mainnet.id, // Always query mainnet for ENS
   });
-  const { data: ensAvatar } = useEnsAvatar({ 
+  const { data: ensAvatar } = useEnsAvatar({
     name: ensName ?? undefined,
     chainId: mainnet.id,
   });
-  
+
   // Display name: ENS name if available, otherwise shortened address
-  const displayName = ensName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "User");
-  
+  const _displayName = ensName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "User");
+
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [session, setSession] = useState<IncubationSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,11 +67,11 @@ export default function IncubatorPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Project Registration Hook - REAL blockchain transaction
-  const { 
-    registerProject, 
-    status: registrationStatus, 
+  const {
+    registerProject,
+    status: _registrationStatus,
     txHash: registrationTxHash,
-    isConfirming: isRegistrationConfirming,
+    isConfirming: _isRegistrationConfirming,
     isSuccess: isRegistrationSuccess,
     error: registrationError,
     reset: resetRegistration
@@ -132,7 +132,7 @@ export default function IncubatorPage() {
   // Execute action - routes to real implementations
   const executeAction = useCallback(async (action: AgentAction) => {
     console.log("[executeAction] Action type:", action.type, "Session:", !!session, "Address:", !!address);
-    
+
     if (action.type === "mint_ens") {
       // Real project registration on-chain
       if (!session || !address) {
@@ -151,9 +151,9 @@ export default function IncubatorPage() {
         setMessages((prev) => [...prev, errorMessage]);
         return;
       }
-      
+
       console.log("[executeAction] Calling real project registration...");
-      
+
       setPendingAction(action);
 
       // Extract project name from ensName (e.g., "defi-hub.consul.eth" -> "defi-hub")
@@ -175,7 +175,7 @@ export default function IncubatorPage() {
         });
 
         console.log("[executeAction] Calling registerProject with:", projectId);
-        
+
         await registerProject({
           name: projectId,
           manifest: manifest,
@@ -193,7 +193,7 @@ export default function IncubatorPage() {
       }
       return;
     }
-    
+
     // Fallback to simulated action for other types
     await simulateAction(action);
   }, [session, address, registerProject]);
@@ -201,7 +201,7 @@ export default function IncubatorPage() {
   // Simulated action for non-ENS actions (temporary)
   const simulateAction = async (action: AgentAction) => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    
+
     const completedAction: AgentAction = {
       ...action,
       status: "completed",
@@ -211,9 +211,9 @@ export default function IncubatorPage() {
     setSession((prev) => {
       if (!prev) return null;
       const newActions = [...prev.actions, completedAction];
-      
+
       const updates: Partial<IncubationSession> = { actions: newActions };
-      
+
       if (completedAction.type === "setup_treasury") {
         updates.usdcBalance = prev.config.treasuryAmount || 0;
       } else if (completedAction.type === "deploy_pool") {
@@ -221,12 +221,12 @@ export default function IncubatorPage() {
       } else if (completedAction.type === "lock_liquidity") {
         updates.isAntiRugActive = true;
       }
-      
+
       if (newActions.length <= 2) updates.stage = "screening";
       else if (newActions.length <= 4) updates.stage = "incubating";
       else if (newActions.length <= 5) updates.stage = "launching";
       else updates.stage = "launched";
-      
+
       return { ...prev, ...updates };
     });
 
@@ -241,10 +241,10 @@ export default function IncubatorPage() {
   // Welcome message on mount
   useEffect(() => {
     if (messages.length === 0 && isConnected) {
-      const greeting = ensName 
-        ? `👋 Welcome back, **${ensName}**!` 
+      const greeting = ensName
+        ? `👋 Welcome back, **${ensName}**!`
         : `👋 Welcome to ConsulDAO Incubator!`;
-      
+
       const welcomeMessage = createChatMessage(
         "agent",
         `${greeting}\n\nI'm your AI incubation assistant. I'll guide you through launching your project on Base.\n\nSay **"Start my project"** to begin!`
@@ -342,8 +342,8 @@ export default function IncubatorPage() {
     // Update session FIRST before creating message
     let updatedSession = session;
     if (agentResponse.updateSession) {
-      updatedSession = { 
-        ...session, 
+      updatedSession = {
+        ...session,
         ...agentResponse.updateSession,
         // Deep merge config object
         config: {
@@ -381,7 +381,7 @@ export default function IncubatorPage() {
   return (
     <div className="h-screen flex flex-col bg-white">
       <Navbar />
-      
+
       {/* Wrong Network Warning */}
       {isWrongNetwork && (
         <div className="fixed top-16 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 flex items-center justify-center gap-4">
@@ -398,14 +398,13 @@ export default function IncubatorPage() {
           </Button>
         </div>
       )}
-      
+
       {/* Main Container */}
       <div className={`flex-1 flex pt-16 overflow-hidden ${isWrongNetwork ? "mt-12" : ""}`}>
         {/* Left Sidebar - Status Panel */}
-        <div 
-          className={`bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ${
-            isSidebarOpen ? "w-80" : "w-0"
-          } overflow-hidden`}
+        <div
+          className={`bg-gray-50 border-r border-gray-200 flex flex-col transition-all duration-300 ${isSidebarOpen ? "w-80" : "w-0"
+            } overflow-hidden`}
         >
           <div className="w-80 flex flex-col h-full">
             {/* Header */}
@@ -430,7 +429,7 @@ export default function IncubatorPage() {
                     </p>
                   </div>
                 </div>
-                
+
                 {/* Progress bar */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm mb-2">
@@ -438,13 +437,13 @@ export default function IncubatorPage() {
                     <span className="font-bold">{completedSteps}/{INCUBATION_FLOW.length}</span>
                   </div>
                   <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
                 </div>
-                
+
                 <Badge variant="secondary" className="capitalize">
                   Stage: {session.stage}
                 </Badge>
@@ -475,8 +474,8 @@ export default function IncubatorPage() {
                       Treasury
                     </span>
                     <span className={`text-sm font-bold ${session.usdcBalance > 0 ? "text-green-600" : ""}`}>
-                      {session.config.treasuryAmount 
-                        ? formatUSDC(session.config.treasuryAmount) 
+                      {session.config.treasuryAmount
+                        ? formatUSDC(session.config.treasuryAmount)
                         : "Not set"}
                     </span>
                   </div>
@@ -486,8 +485,8 @@ export default function IncubatorPage() {
                       Vesting Lock
                     </span>
                     <span className="text-sm font-medium">
-                      {session.config.vestingPeriod 
-                        ? `${session.config.vestingPeriod} months` 
+                      {session.config.vestingPeriod
+                        ? `${session.config.vestingPeriod} months`
                         : "Not set"}
                     </span>
                   </div>
@@ -521,13 +520,12 @@ export default function IncubatorPage() {
                   return (
                     <div
                       key={actionType}
-                      className={`flex items-center gap-3 p-3 rounded-xl text-sm transition-all ${
-                        isCompleted 
-                          ? "bg-green-100 text-green-800" 
-                          : isExecuting 
-                          ? "bg-primary/10 text-primary" 
-                          : "bg-gray-100 text-muted-foreground"
-                      }`}
+                      className={`flex items-center gap-3 p-3 rounded-xl text-sm transition-all ${isCompleted
+                          ? "bg-green-100 text-green-800"
+                          : isExecuting
+                            ? "bg-primary/10 text-primary"
+                            : "bg-gray-100 text-muted-foreground"
+                        }`}
                     >
                       <div className="flex-shrink-0">
                         {isCompleted ? (
@@ -548,7 +546,7 @@ export default function IncubatorPage() {
               </div>
             </div>
 
-            </div>
+          </div>
         </div>
 
         {/* Toggle Sidebar Button */}
@@ -567,7 +565,7 @@ export default function IncubatorPage() {
         {/* Right Side - Chat Area */}
         <div className="flex-1 flex flex-col bg-white">
           {/* Chat Messages */}
-          <div 
+          <div
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto"
           >
@@ -579,15 +577,15 @@ export default function IncubatorPage() {
                 </div>
                 <h1 className="text-4xl font-bold mb-4">Launch your project</h1>
                 <p className="text-lg text-muted-foreground text-center max-w-lg mb-8">
-                  Connect your wallet and I'll guide you through launching your Web3 project on Base with ENS, treasury, and anti-rug protection.
+                  Connect your wallet and I&apos;ll guide you through launching your Web3 project on Base with ENS, treasury, and anti-rug protection.
                 </p>
               </div>
             ) : (
               /* Messages List */
               <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
                 {messages.map((message) => (
-                  <ChatMessage 
-                    key={message.id} 
+                  <ChatMessage
+                    key={message.id}
                     message={message}
                     ensName={message.role === "user" ? ensName : undefined}
                     ensAvatar={message.role === "user" ? ensAvatar : undefined}

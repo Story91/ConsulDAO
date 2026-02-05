@@ -1,7 +1,6 @@
 "use client";
 
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
 import {
     Users,
     Coins,
@@ -73,8 +72,8 @@ export default function DaoLayout({
                                         key={item.href}
                                         href={item.href}
                                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive
-                                                ? "bg-primary/10 text-primary"
-                                                : "text-muted-foreground hover:bg-gray-100 hover:text-foreground"
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:bg-gray-100 hover:text-foreground"
                                             }`}
                                     >
                                         <item.icon className={`w-4 h-4 ${isActive ? "text-primary" : ""}`} />

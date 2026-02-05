@@ -8,15 +8,29 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 /**
  * @title HubDAO
  * @notice Main DAO contract that holds the treasury, approves quarterly budgets, and has veto power
+ * @dev Integrates with ConsulStaking for vote-weighted governance and Buyback for treasury management
  */
 interface ISquads {
     function fundSquadBudget(uint256 squadId, uint256 amount) external;
+}
+
+interface IConsulStaking {
+    function getVotingPower(address user) external view returns (uint256);
+    function totalStaked() external view returns (uint256);
+}
+
+interface IBuyback {
+    function executeBuyback(uint256 usdcAmount, uint256 minConsulOut) external;
 }
 
 contract HubDAO is Ownable, ReentrancyGuard {
     // Treasury token (e.g., USDC)
     IERC20 public treasuryToken;
     address public squadsContract;
+
+    // Governance contracts
+    IConsulStaking public stakingContract;
+    IBuyback public buybackContract;
 
     // Quarterly budget structure
     struct QuarterlyBudget {
@@ -192,5 +206,53 @@ contract HubDAO is Ownable, ReentrancyGuard {
      */
     function getTreasuryBalance() external view returns (uint256) {
         return treasuryToken.balanceOf(address(this));
+    }
+
+    // ============ Governance Integration ============
+
+    /**
+     * @notice Set the staking contract for vote-weighted governance
+     */
+    function setStakingContract(address _stakingContract) external onlyOwner {
+        stakingContract = IConsulStaking(_stakingContract);
+    }
+
+    /**
+     * @notice Set the buyback contract
+     */
+    function setBuybackContract(address _buybackContract) external onlyOwner {
+        buybackContract = IBuyback(_buybackContract);
+    }
+
+    /**
+     * @notice Get voting power for an address (from staking)
+     * @param voter Address to check
+     * @return Voting power (0 if no staking contract set)
+     */
+    function getVotingPower(address voter) external view returns (uint256) {
+        if (address(stakingContract) == address(0)) return 0;
+        return stakingContract.getVotingPower(voter);
+    }
+
+    /**
+     * @notice Execute a buyback using treasury USDC
+     * @dev Only callable by owner after governance approval
+     * @param usdcAmount Amount of USDC to spend
+     * @param minConsulOut Minimum CONSUL to receive (slippage)
+     */
+    function triggerBuyback(
+        uint256 usdcAmount,
+        uint256 minConsulOut
+    ) external onlyOwner nonReentrant {
+        require(address(buybackContract) != address(0), "Buyback not set");
+
+        // Transfer USDC to buyback contract
+        require(
+            treasuryToken.transfer(address(buybackContract), usdcAmount),
+            "Transfer failed"
+        );
+
+        // Execute the buyback
+        buybackContract.executeBuyback(usdcAmount, minConsulOut);
     }
 }

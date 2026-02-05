@@ -40,7 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# hardhat
-artifacts/
-cache/
-typechain-types/
+# hardhat (keep artifacts for easier dev setup)
+# artifacts/
+# cache/
+# typechain-types/

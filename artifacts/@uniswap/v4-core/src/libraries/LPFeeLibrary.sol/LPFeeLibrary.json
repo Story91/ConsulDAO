@@ -1,0 +1,74 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "LPFeeLibrary",
+  "sourceName": "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint24",
+          "name": "fee",
+          "type": "uint24"
+        }
+      ],
+      "name": "LPFeeTooLarge",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DYNAMIC_FEE_FLAG",
+      "outputs": [
+        {
+          "internalType": "uint24",
+          "name": "",
+          "type": "uint24"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_LP_FEE",
+      "outputs": [
+        {
+          "internalType": "uint24",
+          "name": "",
+          "type": "uint24"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OVERRIDE_FEE_FLAG",
+      "outputs": [
+        {
+          "internalType": "uint24",
+          "name": "",
+          "type": "uint24"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "REMOVE_OVERRIDE_MASK",
+      "outputs": [
+        {
+          "internalType": "uint24",
+          "name": "",
+          "type": "uint24"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x60c8610039600b82828239805160001a60731461002c57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe730000000000000000000000000000000000000000301460806040526004361060515760003560e01c80633b01d64d1460565780633fc48eba1460775780636f95ebcf146080578063f26ef49d146089575b600080fd5b605f6240000081565b60405162ffffff909116815260200160405180910390f35b605f620f424081565b605f62bfffff81565b605f628000008156fea2646970667358221220ab8560b285e49d6cabd347e9a4f8a103bbddf7600ceef3b31a8ff077536704bc64736f6c63430008180033",
+  "deployedBytecode": "0x730000000000000000000000000000000000000000301460806040526004361060515760003560e01c80633b01d64d1460565780633fc48eba1460775780636f95ebcf146080578063f26ef49d146089575b600080fd5b605f6240000081565b60405162ffffff909116815260200160405180910390f35b605f620f424081565b605f62bfffff81565b605f628000008156fea2646970667358221220ab8560b285e49d6cabd347e9a4f8a103bbddf7600ceef3b31a8ff077536704bc64736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

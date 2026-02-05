@@ -9,6 +9,14 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @notice Manages specialized squads (e.g., Legal, Dev) and their tasks
  */
 contract Squads is Ownable, ReentrancyGuard {
+    // Squad types for the Genesis Transition model
+    enum SquadType {
+        General,
+        Admissions, // Decide who gets in
+        Services, // Do the work (agents, contractors)
+        Treasury // Hold and manage funds
+    }
+
     struct Task {
         string description;
         uint256 reward;
@@ -20,6 +28,7 @@ contract Squads is Ownable, ReentrancyGuard {
 
     struct Squad {
         string name;
+        SquadType squadType;
         address[] members;
         mapping(address => bool) isMember;
         uint256 budget;
@@ -35,7 +44,11 @@ contract Squads is Ownable, ReentrancyGuard {
     // HubDAO address (for budget requests - future integration)
     address public hubDao;
 
-    event SquadCreated(uint256 indexed squadId, string name);
+    event SquadCreated(
+        uint256 indexed squadId,
+        string name,
+        SquadType squadType
+    );
     event MemberAdded(uint256 indexed squadId, address member);
     event MemberRemoved(uint256 indexed squadId, address member);
     event TaskCreated(
@@ -85,14 +98,18 @@ contract Squads is Ownable, ReentrancyGuard {
     /**
      * @notice Create a new squad
      * @param name Name of the squad (e.g. "Legal")
+     * @param squadType Type of squad (Admissions, Services, Treasury, or General)
      */
-    function createSquad(string calldata name) external onlyOwner {
+    function createSquad(
+        string calldata name,
+        SquadType squadType
+    ) external onlyOwner {
         squadCount++;
         Squad storage newSquad = squads[squadCount];
         newSquad.name = name;
-        // Owner is default member? No, let's keep it specific.
+        newSquad.squadType = squadType;
 
-        emit SquadCreated(squadCount, name);
+        emit SquadCreated(squadCount, name, squadType);
     }
 
     /**

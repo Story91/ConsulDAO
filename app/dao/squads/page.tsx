@@ -5,13 +5,12 @@ import {
     Users,
     Plus,
     Briefcase,
-    Coins,
     CheckCircle2,
     Clock,
     ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
     Sheet,

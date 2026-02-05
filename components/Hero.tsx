@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge as _Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, Zap, Shield } from "lucide-react";
 
 export function Hero() {
@@ -10,14 +10,14 @@ export function Hero() {
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 gradient-bg" />
-      
+
       {/* Floating orbs */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float opacity-60" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float-delayed opacity-40" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 rounded-full blur-3xl opacity-50" />
-      
+
       {/* Grid pattern */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
@@ -35,16 +35,16 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="animate-slide-up opacity-0 stagger-3 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            ConsulDAO is a comprehensive DAO incubator for the Base ecosystem. 
-            Complete infrastructure, legal wrapper, and expert squads to transform 
+            ConsulDAO is a comprehensive DAO incubator for the Base ecosystem.
+            Complete infrastructure, legal wrapper, and expert squads to transform
             your concept into reality.
           </p>
 
           {/* CTA Buttons */}
           <div className="animate-slide-up opacity-0 stagger-4 flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button 
-              asChild 
-              size="lg" 
+            <Button
+              asChild
+              size="lg"
               className="h-14 px-8 text-base font-semibold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
             >
               <Link href="/incubator" className="flex items-center gap-2">
@@ -52,10 +52,10 @@ export function Hero() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              size="lg" 
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
               className="h-14 px-8 text-base font-semibold border-2 hover:bg-secondary transition-all hover:-translate-y-0.5"
             >
               <Link href="#features">
