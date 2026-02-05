@@ -6,6 +6,26 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+/// @notice Interface for ERC20Burnable tokens
+interface IERC20Burnable {
+    function burn(uint256 amount) external;
+    function burnFrom(address account, uint256 amount) external;
+}
+
+/// @notice Uniswap V3 SwapRouter interface (exactInputSingle)
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+}
+
 /**
  * @title Buyback
  * @notice Treasury buyback & burn mechanism for $CONSUL
@@ -69,6 +89,9 @@ contract Buyback is Ownable, ReentrancyGuard {
         address _hubDao,
         address _initialOwner
     ) Ownable(_initialOwner) {
+        require(_usdc != address(0), "Invalid USDC address");
+        require(_consulToken != address(0), "Invalid CONSUL address");
+        require(_hubDao != address(0), "Invalid HubDAO address");
         usdc = IERC20(_usdc);
         consulToken = IERC20(_consulToken);
         hubDao = _hubDao;
@@ -91,16 +114,9 @@ contract Buyback is Ownable, ReentrancyGuard {
             revert InsufficientBalance(usdcAmount, usdcBalance);
         }
 
-        uint256 consulBought;
+        if (dexRouter == address(0)) revert DexRouterNotSet();
 
-        if (dexRouter != address(0)) {
-            // Real swap via DEX
-            consulBought = _executeSwap(usdcAmount, minConsulOut);
-        } else {
-            // Simulation mode: assume 1 USDC = 1 CONSUL for testing
-            // In production, this branch should never execute
-            consulBought = usdcAmount * 10 ** 12; // USDC 6 decimals -> CONSUL 18 decimals
-        }
+        uint256 consulBought = _executeSwap(usdcAmount, minConsulOut);
 
         // Burn the bought CONSUL
         _burnConsul(consulBought);
@@ -116,9 +132,22 @@ contract Buyback is Ownable, ReentrancyGuard {
         );
     }
 
+    /// @notice Pool fee tier for USDC/CONSUL pair (default 0.3%)
+    uint24 public poolFee = 3000;
+
     /**
-     * @notice Execute swap on DEX
-     * @dev Override this for specific DEX integration
+     * @notice Update the pool fee tier
+     */
+    function setPoolFee(uint24 _poolFee) external onlyOwner {
+        require(
+            _poolFee == 100 || _poolFee == 500 || _poolFee == 3000 || _poolFee == 10000,
+            "Invalid fee tier"
+        );
+        poolFee = _poolFee;
+    }
+
+    /**
+     * @notice Execute swap on DEX via Uniswap V3 router
      */
     function _executeSwap(
         uint256 usdcAmount,
@@ -126,30 +155,29 @@ contract Buyback is Ownable, ReentrancyGuard {
     ) internal returns (uint256 consulOut) {
         if (dexRouter == address(0)) revert DexRouterNotSet();
 
-        // Approve router to spend USDC
-        usdc.approve(dexRouter, usdcAmount);
+        // Approve router to spend USDC (reset first for tokens that require it)
+        usdc.forceApprove(dexRouter, usdcAmount);
 
-        // TODO: Implement actual Uniswap V3 swap
-        // For now, this is a placeholder that should be extended
-        // with the actual swap logic when deploying
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: address(usdc),
+            tokenOut: address(consulToken),
+            fee: poolFee,
+            recipient: address(this),
+            amountIn: usdcAmount,
+            amountOutMinimum: minConsulOut,
+            sqrtPriceLimitX96: 0
+        });
 
-        // Example Uniswap V3 swap would go here:
-        // ISwapRouter.ExactInputSingleParams memory params = ...
-        // consulOut = ISwapRouter(dexRouter).exactInputSingle(params);
-
-        // Placeholder: revert if router is set but swap not implemented
-        revert SwapFailed();
+        consulOut = ISwapRouter(dexRouter).exactInputSingle(params);
+        if (consulOut == 0) revert SwapFailed();
     }
 
     /**
-     * @notice Burn CONSUL tokens
+     * @notice Burn CONSUL tokens using ERC20Burnable.burn()
+     * @dev Actually reduces totalSupply(), unlike dead-address transfers
      */
     function _burnConsul(uint256 amount) internal {
-        // Send to dead address (standard burn pattern)
-        consulToken.safeTransfer(
-            address(0x000000000000000000000000000000000000dEaD),
-            amount
-        );
+        IERC20Burnable(address(consulToken)).burn(amount);
     }
 
     /**
@@ -164,6 +192,7 @@ contract Buyback is Ownable, ReentrancyGuard {
      * @notice Update HubDAO address
      */
     function setHubDao(address _hubDao) external onlyOwner {
+        require(_hubDao != address(0), "Invalid address");
         address old = hubDao;
         hubDao = _hubDao;
         emit HubDaoUpdated(old, _hubDao);

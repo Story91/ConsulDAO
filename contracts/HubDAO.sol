@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -24,6 +25,8 @@ interface IBuyback {
 }
 
 contract HubDAO is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     // Treasury token (e.g., USDC)
     IERC20 public treasuryToken;
     address public squadsContract;
@@ -35,11 +38,13 @@ contract HubDAO is Ownable, ReentrancyGuard {
     // Quarterly budget structure
     struct QuarterlyBudget {
         uint256 amount;
+        uint256 spent;
         uint256 startTime;
         uint256 endTime;
         bool approved;
         mapping(address => bool) votes;
-        uint256 voteCount;
+        uint256 totalVotePower; // Sum of voting power from supporters
+        uint256 snapshotTotalStaked; // Snapshot of total staked at proposal time
     }
 
     // Current quarter budget
@@ -71,6 +76,7 @@ contract HubDAO is Ownable, ReentrancyGuard {
         address _treasuryToken,
         address _initialOwner
     ) Ownable(_initialOwner) {
+        require(_treasuryToken != address(0), "Invalid treasury token");
         treasuryToken = IERC20(_treasuryToken);
         currentQuarter = 0;
     }
@@ -80,12 +86,15 @@ contract HubDAO is Ownable, ReentrancyGuard {
      * @param amount Budget amount in treasury token
      */
     function proposeBudget(uint256 amount) external onlyOwner {
+        require(address(stakingContract) != address(0), "Staking not configured");
+
         currentQuarter++;
         QuarterlyBudget storage budget = quarterlyBudgets[currentQuarter];
         budget.amount = amount;
         budget.startTime = block.timestamp;
         budget.endTime = block.timestamp + 90 days; // 3 months
         budget.approved = false;
+        budget.snapshotTotalStaked = stakingContract.totalStaked();
 
         emit BudgetProposed(currentQuarter, amount);
     }
@@ -100,9 +109,15 @@ contract HubDAO is Ownable, ReentrancyGuard {
         require(block.timestamp <= budget.endTime, "Voting period ended");
         require(!budget.votes[msg.sender], "Already voted");
 
+        // Require staking contract to be set for weighted voting
+        require(address(stakingContract) != address(0), "Staking not configured");
+
+        uint256 voterPower = stakingContract.getVotingPower(msg.sender);
+        require(voterPower > 0, "No voting power");
+
         budget.votes[msg.sender] = true;
         if (support) {
-            budget.voteCount++;
+            budget.totalVotePower += voterPower;
         }
 
         emit BudgetVoted(quarter, msg.sender, support);
@@ -117,10 +132,11 @@ contract HubDAO is Ownable, ReentrancyGuard {
         require(!budget.approved, "Already approved");
         require(block.timestamp <= budget.endTime, "Voting period ended");
 
-        // Check if voting threshold is met (simplified - should check token balance)
+        // Check voting threshold against snapshot taken at proposal time
+        require(budget.snapshotTotalStaked > 0, "No tokens staked at proposal");
         require(
-            budget.voteCount >= MIN_VOTING_THRESHOLD / 100,
-            "Insufficient votes"
+            budget.totalVotePower * 10000 / budget.snapshotTotalStaked >= MIN_VOTING_THRESHOLD,
+            "Insufficient vote power"
         );
 
         budget.approved = true;
@@ -146,9 +162,12 @@ contract HubDAO is Ownable, ReentrancyGuard {
             "Budget period not started"
         );
         require(block.timestamp <= budget.endTime, "Budget period ended");
-        require(amount <= budget.amount, "Amount exceeds budget");
 
-        require(treasuryToken.transfer(recipient, amount), "Transfer failed");
+        uint256 remaining = budget.amount - budget.spent;
+        require(amount <= remaining, "Amount exceeds remaining budget");
+
+        budget.spent += amount;
+        treasuryToken.safeTransfer(recipient, amount);
 
         emit BudgetExecuted(quarter, recipient, amount);
     }
@@ -181,20 +200,28 @@ contract HubDAO is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Allocate funds to a specific squad
-     * @dev Transfers tokens to Squads contract and updates budget mapping there
+     * @notice Allocate funds to a specific squad from an approved budget
+     * @param quarter The approved budget quarter to draw from
+     * @param squadId ID of the squad to fund
+     * @param amount Amount to allocate
      */
     function allocateSquadBudget(
+        uint256 quarter,
         uint256 squadId,
         uint256 amount
     ) external onlyOwner nonReentrant {
         require(squadsContract != address(0), "Squads contract not set");
 
+        QuarterlyBudget storage budget = quarterlyBudgets[quarter];
+        require(budget.approved, "Budget not approved");
+        require(block.timestamp <= budget.endTime, "Budget period ended");
+        uint256 remaining = budget.amount - budget.spent;
+        require(amount <= remaining, "Amount exceeds remaining budget");
+
+        budget.spent += amount;
+
         // Transfer tokens to Squads contract
-        require(
-            treasuryToken.transfer(squadsContract, amount),
-            "Transfer failed"
-        );
+        treasuryToken.safeTransfer(squadsContract, amount);
 
         // Update budget in Squads contract
         ISquads(squadsContract).fundSquadBudget(squadId, amount);
@@ -214,6 +241,7 @@ contract HubDAO is Ownable, ReentrancyGuard {
      * @notice Set the staking contract for vote-weighted governance
      */
     function setStakingContract(address _stakingContract) external onlyOwner {
+        require(_stakingContract != address(0), "Invalid address");
         stakingContract = IConsulStaking(_stakingContract);
     }
 
@@ -221,6 +249,7 @@ contract HubDAO is Ownable, ReentrancyGuard {
      * @notice Set the buyback contract
      */
     function setBuybackContract(address _buybackContract) external onlyOwner {
+        require(_buybackContract != address(0), "Invalid address");
         buybackContract = IBuyback(_buybackContract);
     }
 
@@ -235,22 +264,28 @@ contract HubDAO is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Execute a buyback using treasury USDC
-     * @dev Only callable by owner after governance approval
+     * @notice Execute a buyback using treasury USDC from an approved budget
+     * @param quarter The approved budget quarter to draw from
      * @param usdcAmount Amount of USDC to spend
      * @param minConsulOut Minimum CONSUL to receive (slippage)
      */
     function triggerBuyback(
+        uint256 quarter,
         uint256 usdcAmount,
         uint256 minConsulOut
     ) external onlyOwner nonReentrant {
         require(address(buybackContract) != address(0), "Buyback not set");
 
+        QuarterlyBudget storage budget = quarterlyBudgets[quarter];
+        require(budget.approved, "Budget not approved");
+        require(block.timestamp <= budget.endTime, "Budget period ended");
+        uint256 remaining = budget.amount - budget.spent;
+        require(usdcAmount <= remaining, "Amount exceeds remaining budget");
+
+        budget.spent += usdcAmount;
+
         // Transfer USDC to buyback contract
-        require(
-            treasuryToken.transfer(address(buybackContract), usdcAmount),
-            "Transfer failed"
-        );
+        treasuryToken.safeTransfer(address(buybackContract), usdcAmount);
 
         // Execute the buyback
         buybackContract.executeBuyback(usdcAmount, minConsulOut);

@@ -198,6 +198,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Buyback__factory>;
     getContractFactory(
+      name: "IERC20Burnable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20Burnable__factory>;
+    getContractFactory(
+      name: "ISwapRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ISwapRouter__factory>;
+    getContractFactory(
       name: "ConsulStaking",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ConsulStaking__factory>;
@@ -233,6 +241,10 @@ declare module "hardhat/types/runtime" {
       name: "Squads",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Squads__factory>;
+    getContractFactory(
+      name: "MockSwapRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MockSwapRouter__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -465,6 +477,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Buyback>;
     getContractAt(
+      name: "IERC20Burnable",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20Burnable>;
+    getContractAt(
+      name: "ISwapRouter",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ISwapRouter>;
+    getContractAt(
       name: "ConsulStaking",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -509,6 +531,11 @@ declare module "hardhat/types/runtime" {
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.Squads>;
+    getContractAt(
+      name: "MockSwapRouter",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MockSwapRouter>;
 
     deployContract(
       name: "Ownable",
@@ -695,6 +722,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Buyback>;
     deployContract(
+      name: "IERC20Burnable",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20Burnable>;
+    deployContract(
+      name: "ISwapRouter",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISwapRouter>;
+    deployContract(
       name: "ConsulStaking",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ConsulStaking>;
@@ -730,6 +765,10 @@ declare module "hardhat/types/runtime" {
       name: "Squads",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Squads>;
+    deployContract(
+      name: "MockSwapRouter",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockSwapRouter>;
 
     deployContract(
       name: "Ownable",
@@ -962,6 +1001,16 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Buyback>;
     deployContract(
+      name: "IERC20Burnable",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20Burnable>;
+    deployContract(
+      name: "ISwapRouter",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ISwapRouter>;
+    deployContract(
       name: "ConsulStaking",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -1006,6 +1055,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Squads>;
+    deployContract(
+      name: "MockSwapRouter",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.MockSwapRouter>;
 
     // default types
     getContractFactory(

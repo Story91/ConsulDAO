@@ -33,11 +33,15 @@ export interface ProjectRegistryInterface extends Interface {
       | "projects"
       | "registerProject"
       | "totalProjects"
+      | "transferProjectOwnership"
       | "updateManifest"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "ProjectRegistered" | "ProjectUpdated"
+    nameOrSignatureOrTopic:
+      | "ProjectRegistered"
+      | "ProjectTransferred"
+      | "ProjectUpdated"
   ): EventFragment;
 
   encodeFunctionData(
@@ -61,6 +65,10 @@ export interface ProjectRegistryInterface extends Interface {
   encodeFunctionData(
     functionFragment: "totalProjects",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferProjectOwnership",
+    values: [string, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "updateManifest",
@@ -90,6 +98,10 @@ export interface ProjectRegistryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "transferProjectOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "updateManifest",
     data: BytesLike
   ): Result;
@@ -116,6 +128,31 @@ export namespace ProjectRegisteredEvent {
     founder: string;
     manifest: string;
     timestamp: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ProjectTransferredEvent {
+  export type InputTuple = [
+    nameHash: string,
+    name: string,
+    oldFounder: AddressLike,
+    newFounder: AddressLike
+  ];
+  export type OutputTuple = [
+    nameHash: string,
+    name: string,
+    oldFounder: string,
+    newFounder: string
+  ];
+  export interface OutputObject {
+    nameHash: string;
+    name: string;
+    oldFounder: string;
+    newFounder: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -241,6 +278,12 @@ export interface ProjectRegistry extends BaseContract {
 
   totalProjects: TypedContractMethod<[], [bigint], "view">;
 
+  transferProjectOwnership: TypedContractMethod<
+    [name: string, newFounder: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   updateManifest: TypedContractMethod<
     [name: string, manifest: string],
     [void],
@@ -305,6 +348,13 @@ export interface ProjectRegistry extends BaseContract {
     nameOrSignature: "totalProjects"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "transferProjectOwnership"
+  ): TypedContractMethod<
+    [name: string, newFounder: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "updateManifest"
   ): TypedContractMethod<
     [name: string, manifest: string],
@@ -318,6 +368,13 @@ export interface ProjectRegistry extends BaseContract {
     ProjectRegisteredEvent.InputTuple,
     ProjectRegisteredEvent.OutputTuple,
     ProjectRegisteredEvent.OutputObject
+  >;
+  getEvent(
+    key: "ProjectTransferred"
+  ): TypedContractEvent<
+    ProjectTransferredEvent.InputTuple,
+    ProjectTransferredEvent.OutputTuple,
+    ProjectTransferredEvent.OutputObject
   >;
   getEvent(
     key: "ProjectUpdated"
@@ -337,6 +394,17 @@ export interface ProjectRegistry extends BaseContract {
       ProjectRegisteredEvent.InputTuple,
       ProjectRegisteredEvent.OutputTuple,
       ProjectRegisteredEvent.OutputObject
+    >;
+
+    "ProjectTransferred(string,string,address,address)": TypedContractEvent<
+      ProjectTransferredEvent.InputTuple,
+      ProjectTransferredEvent.OutputTuple,
+      ProjectTransferredEvent.OutputObject
+    >;
+    ProjectTransferred: TypedContractEvent<
+      ProjectTransferredEvent.InputTuple,
+      ProjectTransferredEvent.OutputTuple,
+      ProjectTransferredEvent.OutputObject
     >;
 
     "ProjectUpdated(string,string,string,uint256)": TypedContractEvent<

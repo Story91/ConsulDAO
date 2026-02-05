@@ -71,6 +71,7 @@ contract ConsulStaking is Ownable, ReentrancyGuard {
         address _consulToken,
         address _initialOwner
     ) Ownable(_initialOwner) {
+        require(_consulToken != address(0), "Invalid token address");
         consulToken = IERC20(_consulToken);
 
         // Set multipliers (basis points: 10000 = 1x)
@@ -103,8 +104,9 @@ contract ConsulStaking is Ownable, ReentrancyGuard {
             : 0;
 
         if (info.amount > 0 && info.lockEnd > newLockEnd) {
-            // Keep existing lock if it's longer
+            // Keep existing lock and duration if it's longer
             newLockEnd = info.lockEnd;
+            lockDuration = info.lockDuration;
         }
 
         info.amount += amount;
@@ -150,6 +152,20 @@ contract ConsulStaking is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Get the effective multiplier for a stake
+     * @dev Returns base multiplier (1x) if lock has expired
+     */
+    function _getEffectiveMultiplier(StakeInfo memory info) internal view returns (uint256) {
+        // If lock has expired, fall back to base 1x multiplier
+        if (info.lockEnd > 0 && block.timestamp >= info.lockEnd) {
+            return 10000; // 1x — lock commitment no longer active
+        }
+        uint256 multiplier = lockMultipliers[info.lockDuration];
+        if (multiplier == 0) multiplier = 10000;
+        return multiplier;
+    }
+
+    /**
      * @notice Get voting power for an address
      * @param user Address to check
      * @return Voting power (staked amount × multiplier)
@@ -158,9 +174,7 @@ contract ConsulStaking is Ownable, ReentrancyGuard {
         StakeInfo memory info = stakes[user];
         if (info.amount == 0) return 0;
 
-        uint256 multiplier = lockMultipliers[info.lockDuration];
-        if (multiplier == 0) multiplier = 10000; // Default 1x
-
+        uint256 multiplier = _getEffectiveMultiplier(info);
         return (info.amount * multiplier) / 10000;
     }
 
@@ -181,8 +195,7 @@ contract ConsulStaking is Ownable, ReentrancyGuard {
         )
     {
         StakeInfo memory info = stakes[user];
-        uint256 multiplier = lockMultipliers[info.lockDuration];
-        if (multiplier == 0) multiplier = 10000;
+        uint256 multiplier = _getEffectiveMultiplier(info);
 
         return (
             info.amount,

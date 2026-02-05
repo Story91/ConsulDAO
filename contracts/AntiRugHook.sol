@@ -29,9 +29,13 @@ import {SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 contract AntiRugHook is BaseHook {
     using PoolIdLibrary for PoolKey;
 
+    /// @notice Contract owner (deployer) who can initialize vesting
+    address public owner;
+
     // Vesting configuration per pool
     struct VestingConfig {
         address founder; // Founder address (restricted seller)
+        Currency founderToken; // Which token in the pair belongs to the founder
         uint256 lockStartTime; // When the lock period started
         uint256 cliffDuration; // Time before any tokens can be sold (e.g., 6 months)
         uint256 vestingDuration; // Total vesting period (e.g., 12 months)
@@ -71,8 +75,30 @@ contract AntiRugHook is BaseHook {
     error AlreadyInitialized();
     error NotInitialized();
     error InvalidDuration();
+    error NotOwner();
+    error ZeroAddress();
 
-    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {}
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
+    }
+
+    constructor(IPoolManager _poolManager) BaseHook(_poolManager) {
+        owner = msg.sender;
+    }
+
+    /**
+     * @notice Transfer ownership to a new address
+     * @param newOwner The new owner address
+     */
+    function transferOwnership(address newOwner) external onlyOwner {
+        if (newOwner == address(0)) revert ZeroAddress();
+        address oldOwner = owner;
+        owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
 
     /**
      * @notice Returns the hook permissions
@@ -114,10 +140,11 @@ contract AntiRugHook is BaseHook {
     function initializeVesting(
         PoolKey calldata key,
         address founder,
+        Currency founderToken,
         uint256 cliffDuration,
         uint256 vestingDuration,
         uint256 totalLocked
-    ) external {
+    ) external onlyOwner {
         PoolId poolId = key.toId();
 
         if (vestingConfigs[poolId].initialized) {
@@ -128,8 +155,16 @@ contract AntiRugHook is BaseHook {
             revert InvalidDuration();
         }
 
+        // Validate that founderToken is one of the pool's currencies
+        require(
+            Currency.unwrap(founderToken) == Currency.unwrap(key.currency0) ||
+            Currency.unwrap(founderToken) == Currency.unwrap(key.currency1),
+            "founderToken must be in pool"
+        );
+
         vestingConfigs[poolId] = VestingConfig({
             founder: founder,
+            founderToken: founderToken,
             lockStartTime: block.timestamp,
             cliffDuration: cliffDuration,
             vestingDuration: vestingDuration,
@@ -145,6 +180,36 @@ contract AntiRugHook is BaseHook {
             vestingDuration,
             totalLocked
         );
+    }
+
+    /**
+     * @notice Get the absolute swap amount from params
+     */
+    function _absAmount(int256 amountSpecified) internal pure returns (uint256) {
+        return amountSpecified > 0
+            ? uint256(amountSpecified)
+            : uint256(-amountSpecified);
+    }
+
+    /**
+     * @notice Check if this swap is a founder selling their token
+     */
+    function _isFounderSell(
+        VestingConfig storage config,
+        address sender,
+        PoolKey calldata key,
+        bool zeroForOne
+    ) internal view returns (bool) {
+        // Check if the swap originates from the founder.
+        // `sender` is the direct caller of PoolManager (often a router).
+        // `tx.origin` catches the founder even when using a router.
+        // Note: tx.origin does not work for multisig/contract wallets.
+        if (sender != config.founder && tx.origin != config.founder) {
+            return false;
+        }
+        // If founder token is token0, selling is zeroForOne; otherwise it's !zeroForOne
+        bool founderTokenIsToken0 = Currency.unwrap(config.founderToken) == Currency.unwrap(key.currency0);
+        return founderTokenIsToken0 ? zeroForOne : !zeroForOne;
     }
 
     /**
@@ -169,51 +234,31 @@ contract AntiRugHook is BaseHook {
             );
         }
 
-        // Check if sender is the founder
-        if (sender == config.founder) {
-            // Check if this is a sell (founder selling their tokens)
-            // In Uniswap v4, zeroForOne means selling token0 for token1
-            bool isSelling = params.zeroForOne;
+        if (_isFounderSell(config, sender, key, params.zeroForOne)) {
+            uint256 timeElapsed = block.timestamp - config.lockStartTime;
+            uint256 sellAmount = _absAmount(params.amountSpecified);
 
-            if (isSelling) {
-                uint256 timeElapsed = block.timestamp - config.lockStartTime;
-
-                // Check if cliff period has passed
-                if (timeElapsed < config.cliffDuration) {
-                    uint256 timeRemaining = config.cliffDuration - timeElapsed;
-
-                    emit FounderSellBlocked(
-                        poolId,
-                        config.founder,
-                        params.amountSpecified > 0
-                            ? uint256(params.amountSpecified)
-                            : uint256(-params.amountSpecified),
-                        timeRemaining
-                    );
-
-                    revert VestingPeriodActive(timeRemaining);
-                }
-
-                // Calculate vested amount after cliff
-                uint256 vestedAmount = calculateVestedAmount(
-                    config,
-                    timeElapsed
+            // Check if cliff period has passed
+            if (timeElapsed < config.cliffDuration) {
+                emit FounderSellBlocked(
+                    poolId,
+                    config.founder,
+                    sellAmount,
+                    config.cliffDuration - timeElapsed
                 );
-                uint256 availableToSell = vestedAmount - config.released;
-
-                uint256 sellAmount = params.amountSpecified > 0
-                    ? uint256(params.amountSpecified)
-                    : uint256(-params.amountSpecified);
-
-                if (sellAmount > availableToSell) {
-                    revert NotEnoughVested(sellAmount, availableToSell);
-                }
-
-                // Update released amount
-                config.released += sellAmount;
-
-                emit TokensReleased(poolId, config.founder, sellAmount);
+                revert VestingPeriodActive(config.cliffDuration - timeElapsed);
             }
+
+            // Calculate vested amount after cliff
+            uint256 availableToSell = calculateVestedAmount(config, timeElapsed) - config.released;
+
+            if (sellAmount > availableToSell) {
+                revert NotEnoughVested(sellAmount, availableToSell);
+            }
+
+            // Update released amount
+            config.released += sellAmount;
+            emit TokensReleased(poolId, config.founder, sellAmount);
         }
 
         return (

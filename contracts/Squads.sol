@@ -85,7 +85,8 @@ contract Squads is Ownable, ReentrancyGuard {
     function fundSquadBudget(
         uint256 squadId,
         uint256 amount
-    ) external onlyHubOrOwner {
+    ) external onlyHubOrOwner nonReentrant {
+        require(squadId > 0 && squadId <= squadCount, "Invalid squad ID");
         squads[squadId].budget += amount;
         emit BudgetAllocated(squadId, amount);
     }
@@ -125,6 +126,30 @@ contract Squads is Ownable, ReentrancyGuard {
         squads[squadId].members.push(member);
 
         emit MemberAdded(squadId, member);
+    }
+
+    /**
+     * @notice Remove a member from a squad
+     * @param squadId ID of the squad
+     * @param member Address to remove
+     */
+    function removeMember(uint256 squadId, address member) external onlyOwner {
+        require(squadId > 0 && squadId <= squadCount, "Invalid squad ID");
+        require(squads[squadId].isMember[member], "Not a member");
+
+        squads[squadId].isMember[member] = false;
+
+        // Remove from members array
+        address[] storage members = squads[squadId].members;
+        for (uint256 i = 0; i < members.length; i++) {
+            if (members[i] == member) {
+                members[i] = members[members.length - 1];
+                members.pop();
+                break;
+            }
+        }
+
+        emit MemberRemoved(squadId, member);
     }
 
     /**

@@ -35,6 +35,7 @@ export interface SquadsInterface extends Interface {
       | "getSquadName"
       | "hubDao"
       | "owner"
+      | "removeMember"
       | "renounceOwnership"
       | "setHubDao"
       | "squadCount"
@@ -85,6 +86,10 @@ export interface SquadsInterface extends Interface {
   encodeFunctionData(functionFragment: "hubDao", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "removeMember",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
@@ -126,6 +131,10 @@ export interface SquadsInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "hubDao", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "removeMember",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -350,6 +359,12 @@ export interface Squads extends BaseContract {
 
   owner: TypedContractMethod<[], [string], "view">;
 
+  removeMember: TypedContractMethod<
+    [squadId: BigNumberish, member: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   setHubDao: TypedContractMethod<[_hubDao: AddressLike], [void], "nonpayable">;
@@ -430,6 +445,13 @@ export interface Squads extends BaseContract {
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "removeMember"
+  ): TypedContractMethod<
+    [squadId: BigNumberish, member: AddressLike],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;

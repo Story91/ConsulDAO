@@ -39,7 +39,9 @@ contract ConsulToken is ERC20, ERC20Burnable, ERC20Permit, ERC20Votes, Ownable {
         ERC20("ConsulDAO", "CONSUL")
         ERC20Permit("ConsulDAO")
         Ownable(_initialOwner)
-    {}
+    {
+        require(_initialOwner != address(0), "Invalid owner address");
+    }
 
     /**
      * @notice Perform initial token distribution

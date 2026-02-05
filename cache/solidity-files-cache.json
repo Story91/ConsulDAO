@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/AntiRugHook.sol": {
-      "lastModificationDate": 1770218054391,
-      "contentHash": "b89ecd0b18780c1cb0564c904d7bb275",
+      "lastModificationDate": 1770330942323,
+      "contentHash": "b128a7a1d2b0a580c023da9a5b8dd259",
       "sourceName": "contracts/AntiRugHook.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -862,8 +862,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/Fundraiser.sol": {
-      "lastModificationDate": 1770212195502,
-      "contentHash": "35beb8802a0262b7bf2416d8a66f9c45",
+      "lastModificationDate": 1770330817021,
+      "contentHash": "31ee0cfa1af9bb9938f457edb01a8f59",
       "sourceName": "contracts/Fundraiser.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1235,8 +1235,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/HubDAO.sol": {
-      "lastModificationDate": 1770298991195,
-      "contentHash": "34adb7fe3ed8affeac7c02d3f14c80eb",
+      "lastModificationDate": 1770330899383,
+      "contentHash": "3ccc4e512dcda897f10862c5ff0d29e3",
       "sourceName": "contracts/HubDAO.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1264,6 +1264,7 @@
       },
       "imports": [
         "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts/access/Ownable.sol",
         "@openzeppelin/contracts/utils/ReentrancyGuard.sol"
       ],
@@ -1278,8 +1279,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/Squads.sol": {
-      "lastModificationDate": 1770298993125,
-      "contentHash": "8cad074983b4a80ce8f2a114e992deca",
+      "lastModificationDate": 1770330910306,
+      "contentHash": "421948dc8697e147c6657bd1e4a24476",
       "sourceName": "contracts/Squads.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1317,8 +1318,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/ProjectRegistry.sol": {
-      "lastModificationDate": 1770208101070,
-      "contentHash": "5829b975693438598af99eee65e660b2",
+      "lastModificationDate": 1770330247895,
+      "contentHash": "3006280165ce224a8a834f2dde07bcb2",
       "sourceName": "contracts/ProjectRegistry.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1353,8 +1354,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/Buyback.sol": {
-      "lastModificationDate": 1770298773730,
-      "contentHash": "73c6a8fcac222f97f31ab26c2a8fbc4e",
+      "lastModificationDate": 1770330852020,
+      "contentHash": "0ccdabd3e8c3831d1ee0848dc37b8f5a",
       "sourceName": "contracts/Buyback.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -1390,7 +1391,9 @@
         "^0.8.24"
       ],
       "artifacts": [
-        "Buyback"
+        "Buyback",
+        "IERC20Burnable",
+        "ISwapRouter"
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
@@ -2272,8 +2275,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/ConsulToken.sol": {
-      "lastModificationDate": 1770299108284,
-      "contentHash": "c5b545d63d842892738b85f4e4112284",
+      "lastModificationDate": 1770330297905,
+      "contentHash": "b5c22b00886b9fcab8cb6e751f3acab0",
       "sourceName": "contracts/ConsulToken.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -2393,8 +2396,8 @@
       ]
     },
     "/Users/tobiasd/Desktop/ConsulDAO/contracts/ConsulStaking.sol": {
-      "lastModificationDate": 1770298771845,
-      "contentHash": "21d7749b25c16c137c684495be81546a",
+      "lastModificationDate": 1770330802960,
+      "contentHash": "cfecb3c7d9a8e5e4059eea860dddff00",
       "sourceName": "contracts/ConsulStaking.sol",
       "solcConfig": {
         "version": "0.8.24",
@@ -2431,6 +2434,44 @@
       ],
       "artifacts": [
         "ConsulStaking"
+      ]
+    },
+    "/Users/tobiasd/Desktop/ConsulDAO/contracts/test/MockSwapRouter.sol": {
+      "lastModificationDate": 1770331385813,
+      "contentHash": "a8a36e4db39fc528ec23791f6f642bc2",
+      "sourceName": "contracts/test/MockSwapRouter.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "MockSwapRouter"
       ]
     }
   }

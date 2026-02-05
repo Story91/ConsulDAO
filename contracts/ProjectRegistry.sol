@@ -44,11 +44,19 @@ contract ProjectRegistry {
         uint256 timestamp
     );
 
+    event ProjectTransferred(
+        string indexed nameHash,
+        string name,
+        address indexed oldFounder,
+        address indexed newFounder
+    );
+
     // Errors
     error ProjectAlreadyExists(string name);
     error ProjectNotFound(string name);
     error NotProjectOwner(string name, address caller);
     error InvalidName();
+    error InvalidAddress();
 
     /**
      * @notice Register a new project
@@ -95,6 +103,41 @@ contract ProjectRegistry {
         projects[name].manifest = manifest;
 
         emit ProjectUpdated(name, name, manifest, block.timestamp);
+    }
+
+    /**
+     * @notice Transfer project ownership to a new founder
+     * @param name Project name
+     * @param newFounder New owner address
+     */
+    function transferProjectOwnership(string calldata name, address newFounder) external {
+        if (!projects[name].exists) {
+            revert ProjectNotFound(name);
+        }
+        if (projects[name].founder != msg.sender) {
+            revert NotProjectOwner(name, msg.sender);
+        }
+        if (newFounder == address(0)) {
+            revert InvalidAddress();
+        }
+
+        address oldFounder = projects[name].founder;
+        projects[name].founder = newFounder;
+
+        // Add to new founder's project list
+        founderProjects[newFounder].push(name);
+
+        // Remove from old founder's project list
+        string[] storage oldProjects = founderProjects[oldFounder];
+        for (uint256 i = 0; i < oldProjects.length; i++) {
+            if (keccak256(bytes(oldProjects[i])) == keccak256(bytes(name))) {
+                oldProjects[i] = oldProjects[oldProjects.length - 1];
+                oldProjects.pop();
+                break;
+            }
+        }
+
+        emit ProjectTransferred(name, name, oldFounder, newFounder);
     }
 
     /**

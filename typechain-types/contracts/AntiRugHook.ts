@@ -79,6 +79,7 @@ export type SwapParamsStructOutput = [
 export declare namespace AntiRugHook {
   export type VestingConfigStruct = {
     founder: AddressLike;
+    founderToken: AddressLike;
     lockStartTime: BigNumberish;
     cliffDuration: BigNumberish;
     vestingDuration: BigNumberish;
@@ -89,6 +90,7 @@ export declare namespace AntiRugHook {
 
   export type VestingConfigStructOutput = [
     founder: string,
+    founderToken: string,
     lockStartTime: bigint,
     cliffDuration: bigint,
     vestingDuration: bigint,
@@ -97,6 +99,7 @@ export declare namespace AntiRugHook {
     initialized: boolean
   ] & {
     founder: string;
+    founderToken: string;
     lockStartTime: bigint;
     cliffDuration: bigint;
     vestingDuration: bigint;
@@ -174,13 +177,16 @@ export interface AntiRugHookInterface extends Interface {
       | "getHookPermissions"
       | "getVestingStatus"
       | "initializeVesting"
+      | "owner"
       | "poolManager"
+      | "transferOwnership"
       | "vestingConfigs"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "FounderSellBlocked"
+      | "OwnershipTransferred"
       | "TokensReleased"
       | "VestingInitialized"
   ): EventFragment;
@@ -262,14 +268,20 @@ export interface AntiRugHookInterface extends Interface {
     values: [
       PoolKeyStruct,
       AddressLike,
+      AddressLike,
       BigNumberish,
       BigNumberish,
       BigNumberish
     ]
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "poolManager",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "vestingConfigs",
@@ -326,8 +338,13 @@ export interface AntiRugHookInterface extends Interface {
     functionFragment: "initializeVesting",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "poolManager",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -354,6 +371,19 @@ export namespace FounderSellBlockedEvent {
     founder: string;
     attemptedAmount: bigint;
     timeRemaining: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace OwnershipTransferredEvent {
+  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
+  export type OutputTuple = [previousOwner: string, newOwner: string];
+  export interface OutputObject {
+    previousOwner: string;
+    newOwner: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -594,6 +624,7 @@ export interface AntiRugHook extends BaseContract {
     [
       key: PoolKeyStruct,
       founder: AddressLike,
+      founderToken: AddressLike,
       cliffDuration: BigNumberish,
       vestingDuration: BigNumberish,
       totalLocked: BigNumberish
@@ -602,13 +633,22 @@ export interface AntiRugHook extends BaseContract {
     "nonpayable"
   >;
 
+  owner: TypedContractMethod<[], [string], "view">;
+
   poolManager: TypedContractMethod<[], [string], "view">;
+
+  transferOwnership: TypedContractMethod<
+    [newOwner: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
   vestingConfigs: TypedContractMethod<
     [arg0: BytesLike],
     [
-      [string, bigint, bigint, bigint, bigint, bigint, boolean] & {
+      [string, string, bigint, bigint, bigint, bigint, bigint, boolean] & {
         founder: string;
+        founderToken: string;
         lockStartTime: bigint;
         cliffDuration: bigint;
         vestingDuration: bigint;
@@ -779,6 +819,7 @@ export interface AntiRugHook extends BaseContract {
     [
       key: PoolKeyStruct,
       founder: AddressLike,
+      founderToken: AddressLike,
       cliffDuration: BigNumberish,
       vestingDuration: BigNumberish,
       totalLocked: BigNumberish
@@ -787,15 +828,22 @@ export interface AntiRugHook extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "owner"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "poolManager"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "transferOwnership"
+  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "vestingConfigs"
   ): TypedContractMethod<
     [arg0: BytesLike],
     [
-      [string, bigint, bigint, bigint, bigint, bigint, boolean] & {
+      [string, string, bigint, bigint, bigint, bigint, bigint, boolean] & {
         founder: string;
+        founderToken: string;
         lockStartTime: bigint;
         cliffDuration: bigint;
         vestingDuration: bigint;
@@ -813,6 +861,13 @@ export interface AntiRugHook extends BaseContract {
     FounderSellBlockedEvent.InputTuple,
     FounderSellBlockedEvent.OutputTuple,
     FounderSellBlockedEvent.OutputObject
+  >;
+  getEvent(
+    key: "OwnershipTransferred"
+  ): TypedContractEvent<
+    OwnershipTransferredEvent.InputTuple,
+    OwnershipTransferredEvent.OutputTuple,
+    OwnershipTransferredEvent.OutputObject
   >;
   getEvent(
     key: "TokensReleased"
@@ -839,6 +894,17 @@ export interface AntiRugHook extends BaseContract {
       FounderSellBlockedEvent.InputTuple,
       FounderSellBlockedEvent.OutputTuple,
       FounderSellBlockedEvent.OutputObject
+    >;
+
+    "OwnershipTransferred(address,address)": TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+    OwnershipTransferred: TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
     >;
 
     "TokensReleased(bytes32,address,uint256)": TypedContractEvent<

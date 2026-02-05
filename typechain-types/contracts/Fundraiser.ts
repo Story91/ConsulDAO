@@ -29,9 +29,13 @@ export interface FundraiserInterface extends Interface {
       | "contribute"
       | "contributionToken"
       | "contributions"
+      | "deadline"
+      | "finalized"
       | "forwardToTreasury"
+      | "goal"
       | "isLive"
       | "owner"
+      | "refund"
       | "renounceOwnership"
       | "setFundraisingState"
       | "setTreasury"
@@ -46,6 +50,7 @@ export interface FundraiserInterface extends Interface {
       | "FundraisingStateChanged"
       | "FundsForwarded"
       | "OwnershipTransferred"
+      | "Refunded"
   ): EventFragment;
 
   encodeFunctionData(
@@ -60,12 +65,16 @@ export interface FundraiserInterface extends Interface {
     functionFragment: "contributions",
     values: [AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: "deadline", values?: undefined): string;
+  encodeFunctionData(functionFragment: "finalized", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "forwardToTreasury",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "goal", values?: undefined): string;
   encodeFunctionData(functionFragment: "isLive", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: "refund", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -97,12 +106,16 @@ export interface FundraiserInterface extends Interface {
     functionFragment: "contributions",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deadline", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "finalized", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "forwardToTreasury",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "goal", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isLive", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "refund", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -177,6 +190,19 @@ export namespace OwnershipTransferredEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace RefundedEvent {
+  export type InputTuple = [contributor: AddressLike, amount: BigNumberish];
+  export type OutputTuple = [contributor: string, amount: bigint];
+  export interface OutputObject {
+    contributor: string;
+    amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface Fundraiser extends BaseContract {
   connect(runner?: ContractRunner | null): Fundraiser;
   waitForDeployment(): Promise<this>;
@@ -226,11 +252,19 @@ export interface Fundraiser extends BaseContract {
 
   contributions: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
+  deadline: TypedContractMethod<[], [bigint], "view">;
+
+  finalized: TypedContractMethod<[], [boolean], "view">;
+
   forwardToTreasury: TypedContractMethod<[], [void], "nonpayable">;
+
+  goal: TypedContractMethod<[], [bigint], "view">;
 
   isLive: TypedContractMethod<[], [boolean], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
+
+  refund: TypedContractMethod<[], [void], "nonpayable">;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -270,14 +304,26 @@ export interface Fundraiser extends BaseContract {
     nameOrSignature: "contributions"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "deadline"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "finalized"
+  ): TypedContractMethod<[], [boolean], "view">;
+  getFunction(
     nameOrSignature: "forwardToTreasury"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "goal"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "isLive"
   ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
     nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "refund"
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -325,6 +371,13 @@ export interface Fundraiser extends BaseContract {
     OwnershipTransferredEvent.OutputTuple,
     OwnershipTransferredEvent.OutputObject
   >;
+  getEvent(
+    key: "Refunded"
+  ): TypedContractEvent<
+    RefundedEvent.InputTuple,
+    RefundedEvent.OutputTuple,
+    RefundedEvent.OutputObject
+  >;
 
   filters: {
     "ContributionReceived(address,uint256)": TypedContractEvent<
@@ -369,6 +422,17 @@ export interface Fundraiser extends BaseContract {
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
       OwnershipTransferredEvent.OutputObject
+    >;
+
+    "Refunded(address,uint256)": TypedContractEvent<
+      RefundedEvent.InputTuple,
+      RefundedEvent.OutputTuple,
+      RefundedEvent.OutputObject
+    >;
+    Refunded: TypedContractEvent<
+      RefundedEvent.InputTuple,
+      RefundedEvent.OutputTuple,
+      RefundedEvent.OutputObject
     >;
   };
 }

@@ -68,7 +68,7 @@ export interface HubDAOInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "allocateSquadBudget",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "approveBudget",
@@ -141,7 +141,7 @@ export interface HubDAOInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "triggerBuyback",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "vetoBudget",
@@ -386,7 +386,7 @@ export interface HubDAO extends BaseContract {
   MIN_VOTING_THRESHOLD: TypedContractMethod<[], [bigint], "view">;
 
   allocateSquadBudget: TypedContractMethod<
-    [squadId: BigNumberish, amount: BigNumberish],
+    [quarter: BigNumberish, squadId: BigNumberish, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -422,12 +422,14 @@ export interface HubDAO extends BaseContract {
   quarterlyBudgets: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, bigint, bigint, boolean, bigint] & {
+      [bigint, bigint, bigint, bigint, boolean, bigint, bigint] & {
         amount: bigint;
+        spent: bigint;
         startTime: bigint;
         endTime: bigint;
         approved: boolean;
-        voteCount: bigint;
+        totalVotePower: bigint;
+        snapshotTotalStaked: bigint;
       }
     ],
     "view"
@@ -472,7 +474,11 @@ export interface HubDAO extends BaseContract {
   treasuryToken: TypedContractMethod<[], [string], "view">;
 
   triggerBuyback: TypedContractMethod<
-    [usdcAmount: BigNumberish, minConsulOut: BigNumberish],
+    [
+      quarter: BigNumberish,
+      usdcAmount: BigNumberish,
+      minConsulOut: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
@@ -501,7 +507,7 @@ export interface HubDAO extends BaseContract {
   getFunction(
     nameOrSignature: "allocateSquadBudget"
   ): TypedContractMethod<
-    [squadId: BigNumberish, amount: BigNumberish],
+    [quarter: BigNumberish, squadId: BigNumberish, amount: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -538,12 +544,14 @@ export interface HubDAO extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, bigint, bigint, boolean, bigint] & {
+      [bigint, bigint, bigint, bigint, boolean, bigint, bigint] & {
         amount: bigint;
+        spent: bigint;
         startTime: bigint;
         endTime: bigint;
         approved: boolean;
-        voteCount: bigint;
+        totalVotePower: bigint;
+        snapshotTotalStaked: bigint;
       }
     ],
     "view"
@@ -582,7 +590,11 @@ export interface HubDAO extends BaseContract {
   getFunction(
     nameOrSignature: "triggerBuyback"
   ): TypedContractMethod<
-    [usdcAmount: BigNumberish, minConsulOut: BigNumberish],
+    [
+      quarter: BigNumberish,
+      usdcAmount: BigNumberish,
+      minConsulOut: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
