@@ -8,7 +8,7 @@ const footerLinks = {
   product: [
     { label: "Projects", href: "/projects" },
     { label: "AI Incubator", href: "/incubator" },
-    { label: "Features", href: "#features" },
+    { label: "DAO", href: "/dao" },
   ],
   developers: [
     { label: "GitHub", href: "https://github.com/consuldao" },

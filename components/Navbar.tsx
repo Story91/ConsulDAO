@@ -14,7 +14,7 @@ const PillNav = dynamic(() => import("./PillNav"), {
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Projects", href: "/projects" },
-  { label: "Features", href: "#features" },
+  { label: "DAO", href: "/dao" },
   { label: "Incubator", href: "/incubator" },
 ];
 
