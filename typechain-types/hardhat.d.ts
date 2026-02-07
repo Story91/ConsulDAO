@@ -242,6 +242,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Squads__factory>;
     getContractFactory(
+      name: "HookDeployer",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.HookDeployer__factory>;
+    getContractFactory(
       name: "MockSwapRouter",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockSwapRouter__factory>;
@@ -532,6 +536,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Squads>;
     getContractAt(
+      name: "HookDeployer",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.HookDeployer>;
+    getContractAt(
       name: "MockSwapRouter",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -766,6 +775,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Squads>;
     deployContract(
+      name: "HookDeployer",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.HookDeployer>;
+    deployContract(
       name: "MockSwapRouter",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockSwapRouter>;
@@ -1055,6 +1068,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Squads>;
+    deployContract(
+      name: "HookDeployer",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.HookDeployer>;
     deployContract(
       name: "MockSwapRouter",
       args: any[],

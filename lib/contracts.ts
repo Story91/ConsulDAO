@@ -3,21 +3,36 @@
  */
 
 import { type Address } from "viem";
+import { DEPLOYED_ADDRESSES, EXTERNAL_ADDRESSES } from "./deployed-addresses";
 
 // Contract addresses by network
 export const CONTRACT_ADDRESSES = {
   // Base Sepolia (Testnet)
   baseSepolia: {
-    HUB_DAO: (process.env.NEXT_PUBLIC_HUB_DAO_ADDRESS || "") as Address,
-    ANTI_RUG_HOOK: (process.env.NEXT_PUBLIC_ANTI_RUG_HOOK_ADDRESS || "") as Address,
-    // Uniswap v4 on Base Sepolia
-    POOL_MANAGER: "0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408" as Address,
+    CONSUL_TOKEN: DEPLOYED_ADDRESSES.consulToken || ("" as Address),
+    CONSUL_STAKING: DEPLOYED_ADDRESSES.consulStaking || ("" as Address),
+    HUB_DAO: DEPLOYED_ADDRESSES.hubDAO || ("" as Address),
+    BUYBACK: DEPLOYED_ADDRESSES.buyback || ("" as Address),
+    FUNDRAISER: DEPLOYED_ADDRESSES.fundraiser || ("" as Address),
+    SQUADS: DEPLOYED_ADDRESSES.squads || ("" as Address),
+    PROJECT_REGISTRY: DEPLOYED_ADDRESSES.projectRegistry || ("" as Address),
+    ANTI_RUG_HOOK: DEPLOYED_ADDRESSES.antiRugHook || ("" as Address),
+    // External contracts
+    USDC: EXTERNAL_ADDRESSES.usdc,
+    POOL_MANAGER: EXTERNAL_ADDRESSES.poolManager,
   },
   // Base Mainnet
   base: {
+    CONSUL_TOKEN: "" as Address,
+    CONSUL_STAKING: "" as Address,
     HUB_DAO: "" as Address,
+    BUYBACK: "" as Address,
+    FUNDRAISER: "" as Address,
+    SQUADS: "" as Address,
+    PROJECT_REGISTRY: "" as Address,
     ANTI_RUG_HOOK: "" as Address,
-    // Uniswap v4 on Base
+    // External contracts
+    USDC: "" as Address,
     POOL_MANAGER: "0x498581fF718922c3f8e6A244956aF099B2652b2b" as Address,
   },
 } as const;
@@ -77,8 +92,8 @@ export const ANTI_RUG_HOOK_ABI = [
     name: "initializeVesting",
     type: "function",
     inputs: [
-      { 
-        name: "key", 
+      {
+        name: "key",
         type: "tuple",
         components: [
           { name: "currency0", type: "address" },
@@ -86,7 +101,7 @@ export const ANTI_RUG_HOOK_ABI = [
           { name: "fee", type: "uint24" },
           { name: "tickSpacing", type: "int24" },
           { name: "hooks", type: "address" },
-        ]
+        ],
       },
       { name: "founder", type: "address" },
       { name: "cliffDuration", type: "uint256" },
@@ -99,8 +114,8 @@ export const ANTI_RUG_HOOK_ABI = [
     name: "getVestingStatus",
     type: "function",
     inputs: [
-      { 
-        name: "key", 
+      {
+        name: "key",
         type: "tuple",
         components: [
           { name: "currency0", type: "address" },
@@ -108,7 +123,7 @@ export const ANTI_RUG_HOOK_ABI = [
           { name: "fee", type: "uint24" },
           { name: "tickSpacing", type: "int24" },
           { name: "hooks", type: "address" },
-        ]
+        ],
       },
     ],
     outputs: [
@@ -137,7 +152,7 @@ export const ANTI_RUG_HOOK_ABI = [
           { name: "totalLocked", type: "uint256" },
           { name: "released", type: "uint256" },
           { name: "initialized", type: "bool" },
-        ]
+        ],
       },
       { name: "timeElapsed", type: "uint256" },
     ],
@@ -233,5 +248,6 @@ export function getContractAddress(
   chainId: number
 ): Address | null {
   const network = chainId === 8453 ? "base" : "baseSepolia";
-  return CONTRACT_ADDRESSES[network][contract] || null;
+  const addr = CONTRACT_ADDRESSES[network][contract];
+  return addr || null;
 }

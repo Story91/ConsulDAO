@@ -10,11 +10,11 @@
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useState, useCallback, useEffect } from "react";
 import { type Address } from "viem";
+import { DEPLOYED_ADDRESSES } from "@/lib/deployed-addresses";
 
 // ProjectRegistry contract address on Base Sepolia
-// TODO: Update after deployment
 const PROJECT_REGISTRY_ADDRESS = (process.env.NEXT_PUBLIC_PROJECT_REGISTRY_ADDRESS || 
-  "0x0000000000000000000000000000000000000000") as Address;
+  DEPLOYED_ADDRESSES.projectRegistry || "0x0000000000000000000000000000000000000000") as Address;
 
 // ProjectRegistry ABI (only the functions we need)
 const PROJECT_REGISTRY_ABI = [

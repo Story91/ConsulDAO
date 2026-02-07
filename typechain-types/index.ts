@@ -120,5 +120,7 @@ export type { ProjectRegistry } from "./contracts/ProjectRegistry";
 export { ProjectRegistry__factory } from "./factories/contracts/ProjectRegistry__factory";
 export type { Squads } from "./contracts/Squads";
 export { Squads__factory } from "./factories/contracts/Squads__factory";
+export type { HookDeployer } from "./contracts/test/HookDeployer";
+export { HookDeployer__factory } from "./factories/contracts/test/HookDeployer__factory";
 export type { MockSwapRouter } from "./contracts/test/MockSwapRouter";
 export { MockSwapRouter__factory } from "./factories/contracts/test/MockSwapRouter__factory";
