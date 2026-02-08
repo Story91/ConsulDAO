@@ -14,10 +14,11 @@ import { namehash, encodeFunctionData } from "viem";
 import { normalize } from "viem/ens";
 import { useState, useCallback } from "react";
 import { type Address } from "viem";
+import { sepolia } from "wagmi/chains";
 
-// ENS L2 Resolver on Base Sepolia
-// This is the resolver that handles L2 ENS names
-const ENS_L2_RESOLVER_ADDRESS = "0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA" as Address;
+// ENS Public Resolver on Sepolia (official ENS testnet)
+// This is the official ENS resolver for Ethereum Sepolia
+const ENS_PUBLIC_RESOLVER_ADDRESS = "0x8FADE66B79cC9f707aB26799354482EB93a5B7dD" as Address;
 
 // ENS Public Resolver ABI (subset we need)
 const ENS_RESOLVER_ABI = [
@@ -89,10 +90,11 @@ export function useENSTextRecord(ensName: string | undefined, key: string) {
   const node = ensName ? namehash(normalize(ensName)) : undefined;
 
   const { data, isLoading, error, refetch } = useReadContract({
-    address: ENS_L2_RESOLVER_ADDRESS,
+    address: ENS_PUBLIC_RESOLVER_ADDRESS,
     abi: ENS_RESOLVER_ABI,
     functionName: "text",
     args: node ? [node, key] : undefined,
+    chainId: sepolia.id,
     query: {
       enabled: !!node,
     },
@@ -129,10 +131,11 @@ export function useSetENSTextRecord() {
         const node = namehash(normalize(ensName));
 
         const hash = await writeContractAsync({
-          address: ENS_L2_RESOLVER_ADDRESS,
+          address: ENS_PUBLIC_RESOLVER_ADDRESS,
           abi: ENS_RESOLVER_ABI,
           functionName: "setText",
           args: [node, key, value],
+          chainId: sepolia.id,
         });
 
         return hash;
@@ -192,13 +195,14 @@ export function useENSRegistration() {
       try {
         const node = namehash(normalize(ensName));
 
-        // Set the project manifest as a text record
+        // Set the project manifest as a text record on Sepolia
         // Key: "consul.manifest" (defined in lib/ens.ts)
         const hash = await writeContractAsync({
-          address: ENS_L2_RESOLVER_ADDRESS,
+          address: ENS_PUBLIC_RESOLVER_ADDRESS,
           abi: ENS_RESOLVER_ABI,
           functionName: "setText",
           args: [node, "consul.manifest", projectManifest],
+          chainId: sepolia.id,
         });
 
         setTxHash(hash);

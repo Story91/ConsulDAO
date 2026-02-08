@@ -106,13 +106,24 @@ export function parseProjectManifest(manifestJson: string): ProjectManifest | nu
 
 /**
  * ENS Registry addresses on different chains
+ * 
+ * Note: For ConsulDAO, we use Sepolia for ENS operations (official ENS testnet)
+ * Smart contracts are deployed on Base Sepolia (cheaper L2)
  */
 export const ENS_REGISTRY_ADDRESSES = {
   mainnet: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" as Address,
-  sepolia: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" as Address,
-  // Base uses L2 resolver
+  sepolia: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e" as Address, // ← Official ENS testnet
+  // Base L2 (limited ENS support)
   base: "0x4cCb0720c5a8Cc5A24a1AfE05E0f80126B95c92b" as Address,
   baseSepolia: "0x6533C94869D28fAA8dF77cc63f9e2b2D6Cf77eBA" as Address,
+} as const;
+
+/**
+ * ENS Public Resolver addresses
+ */
+export const ENS_PUBLIC_RESOLVER_ADDRESSES = {
+  mainnet: "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63" as Address,
+  sepolia: "0x8FADE66B79cC9f707aB26799354482EB93a5B7dD" as Address, // ← Use this for testnet
 } as const;
 
 /**

@@ -1,10 +1,11 @@
 "use client";
 import { ReactNode } from "react";
-import { baseSepolia } from "wagmi/chains";
+import { baseSepolia, sepolia } from "wagmi/chains";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
 
-// Using Base Sepolia testnet for development
-// Change to `base` for production
+// Multi-chain setup:
+// - Base Sepolia: Smart contracts (HubDAO, AntiRugHook, etc.)
+// - Sepolia: ENS subdomain minting and text records
 export function RootProvider({ children }: { children: ReactNode }) {
   return (
     <OnchainKitProvider

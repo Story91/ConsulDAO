@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAccount, useChainId, useSwitchChain, useEnsName, useEnsAvatar } from "wagmi";
-import { baseSepolia, mainnet } from "wagmi/chains";
+import { baseSepolia, sepolia, mainnet } from "wagmi/chains";
 import { Navbar } from "@/components/Navbar";
 import { ChatMessage, ChatInput } from "@/components/chat";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NetworkSwitcher, NetworkBadge } from "@/components/NetworkSwitcher";
 import {
   type ChatMessage as ChatMessageType,
   type IncubationSession,
@@ -19,7 +20,8 @@ import {
   formatUSDC,
 } from "@/lib/agent";
 import { useRegisterProject, isContractDeployed } from "@/hooks/useProjectRegistry";
-import { createProjectManifest } from "@/lib/ens";
+import { useENSRegistration } from "@/hooks/useENS";
+import { createProjectManifest, generateProjectSubdomain } from "@/lib/ens";
 import {
   Rocket,
   Sparkles,
@@ -66,7 +68,18 @@ export default function IncubatorPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  // Project Registration Hook - REAL blockchain transaction
+  // ENS Registration Hook - REAL ENS transaction on Sepolia
+  const {
+    registerProject: registerENS,
+    status: ensStatus,
+    txHash: ensTxHash,
+    isConfirming: isENSConfirming,
+    isSuccess: isENSSuccess,
+    error: ensError,
+    reset: resetENS
+  } = useENSRegistration();
+
+  // Project Registry Hook - Base Sepolia (fallback)
   const {
     registerProject,
     status: _registrationStatus,
@@ -84,13 +97,13 @@ export default function IncubatorPage() {
     }
   }, [messages]);
 
-  // Handle project registration success
+  // Handle ENS registration success (Sepolia)
   useEffect(() => {
-    if (isRegistrationSuccess && registrationTxHash && pendingAction?.type === "mint_ens") {
+    if (isENSSuccess && ensTxHash && pendingAction?.type === "mint_ens") {
       const completedAction: AgentAction = {
         ...pendingAction,
         status: "completed",
-        txHash: registrationTxHash,
+        txHash: ensTxHash,
       };
 
       setSession((prev) => {
@@ -105,64 +118,63 @@ export default function IncubatorPage() {
 
       const successMessage = createChatMessage(
         "agent",
-        `✅ **Project Identity Registered On-Chain!**\n\nYour project now has an on-chain identity!\n\nType **"continue"** for the next step.`,
+        `✅ **ENS Identity Registered on Sepolia!**\n\nYour project ENS: \`${session?.ensName}\`\n\n🔗 Transaction: [View on Etherscan](https://sepolia.etherscan.io/tx/${ensTxHash})\n\nType **"continue"** for the next step.`,
         completedAction
       );
       setMessages((prev) => [...prev, successMessage]);
       setSuggestions(["Continue", "Check status"]);
       setPendingAction(null);
-      resetRegistration();
+      resetENS();
     }
-  }, [isRegistrationSuccess, registrationTxHash, pendingAction, resetRegistration]);
+  }, [isENSSuccess, ensTxHash, pendingAction, session?.ensName, resetENS]);
 
-  // Handle project registration error
+  // Handle ENS registration error
   useEffect(() => {
-    if (registrationError && pendingAction?.type === "mint_ens") {
+    if (ensError && pendingAction?.type === "mint_ens") {
       const errorMessage = createChatMessage(
         "agent",
-        `❌ **Registration Failed**\n\n${registrationError.message}\n\nPlease try again or check your wallet.`
+        `❌ **ENS Registration Failed**\n\n${ensError.message}\n\nMake sure you're on **Sepolia** network and have testnet ETH.\n\nPlease try again or check your wallet.`
       );
       setMessages((prev) => [...prev, errorMessage]);
       setSuggestions(["Try again", "Check status"]);
       setPendingAction(null);
-      resetRegistration();
+      resetENS();
     }
-  }, [registrationError, pendingAction, resetRegistration]);
+  }, [ensError, pendingAction, resetENS]);
 
   // Execute action - routes to real implementations
   const executeAction = useCallback(async (action: AgentAction) => {
     console.log("[executeAction] Action type:", action.type, "Session:", !!session, "Address:", !!address);
 
     if (action.type === "mint_ens") {
-      // Real project registration on-chain
+      // Real ENS registration on Sepolia
       if (!session || !address) {
-        console.error("[executeAction] Missing session or address for registration");
+        console.error("[executeAction] Missing session or address for ENS registration");
         await simulateAction(action);
         return;
       }
 
-      // Check if contract is deployed
-      if (!isContractDeployed()) {
-        console.error("[executeAction] ProjectRegistry contract not deployed");
-        const errorMessage = createChatMessage(
+      // Check if user is on Sepolia network
+      if (chainId !== sepolia.id) {
+        const networkMessage = createChatMessage(
           "agent",
-          `⚠️ **Contract Not Deployed**\n\nThe ProjectRegistry contract needs to be deployed first.\n\nRun: \`npm run deploy:sepolia\``
+          `⚠️ **Wrong Network**\n\nENS registration requires **Sepolia** network.\n\nPlease switch networks to continue.`
         );
-        setMessages((prev) => [...prev, errorMessage]);
+        setMessages((prev) => [...prev, networkMessage]);
         return;
       }
 
-      console.log("[executeAction] Calling real project registration...");
+      console.log("[executeAction] Calling real ENS registration on Sepolia...");
 
       setPendingAction(action);
 
-      // Extract project name from ensName (e.g., "defi-hub.consul.eth" -> "defi-hub")
-      const projectId = session.ensName?.split(".")[0] || session.projectName.toLowerCase().replace(/\s+/g, "-");
+      // Generate ENS name
+      const ensName = session.ensName || generateProjectSubdomain(session.projectName);
 
       // Show wallet prompt message
       const walletMessage = createChatMessage(
         "agent",
-        `🔷 **Registering Project On-Chain**\n\nPlease approve the transaction in your wallet to register:\n\n\`${projectId}\`\n\n⏳ Waiting for wallet signature...`
+        `🔷 **Registering ENS on Sepolia**\n\nENS Name: \`${ensName}\`\n\nPlease approve the transaction in your wallet...\n\n⏳ Waiting for wallet signature...`
       );
       setMessages((prev) => [...prev, walletMessage]);
 
@@ -174,21 +186,22 @@ export default function IncubatorPage() {
           stage: session.stage,
         });
 
-        console.log("[executeAction] Calling registerProject with:", projectId);
+        console.log("[executeAction] Calling registerENS with:", ensName);
 
-        await registerProject({
-          name: projectId,
-          manifest: manifest,
+        await registerENS({
+          ensName,
+          projectManifest: manifest,
+          founderAddress: address,
         });
 
         // Show confirming message
         const confirmingMessage = createChatMessage(
           "agent",
-          `⏳ **Transaction submitted!**\n\nWaiting for confirmation on Base Sepolia...`
+          `⏳ **Transaction submitted!**\n\nWaiting for confirmation on Sepolia...\n\nThis may take 10-30 seconds.`
         );
         setMessages((prev) => [...prev, confirmingMessage]);
       } catch (err) {
-        console.error("[executeAction] Registration error:", err);
+        console.error("[executeAction] ENS registration error:", err);
         // Error is handled by the useEffect
       }
       return;
@@ -196,7 +209,7 @@ export default function IncubatorPage() {
 
     // Fallback to simulated action for other types
     await simulateAction(action);
-  }, [session, address, registerProject]);
+  }, [session, address, chainId, registerENS]);
 
   // Simulated action for non-ENS actions (temporary)
   const simulateAction = async (action: AgentAction) => {
@@ -449,6 +462,21 @@ export default function IncubatorPage() {
                 </Badge>
               </div>
             )}
+
+            {/* Network Status */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-muted-foreground">Current Network</span>
+                <NetworkBadge />
+              </div>
+              {pendingAction?.type === "mint_ens" && chainId !== sepolia.id && (
+                <NetworkSwitcher
+                  requiredChainId={sepolia.id}
+                  requiredChainName="Sepolia"
+                  className="mt-2"
+                />
+              )}
+            </div>
 
             {/* Configuration Status */}
             {session && (
