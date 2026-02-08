@@ -1,6 +1,18 @@
 # ConsulDAO - TODO List
 
-**Last Updated**: 2026-02-08
+**Last Updated**: 2026-02-08 (evening)
+
+## 📁 Submission Folder Created
+
+All judge-facing documentation is now in `/submission/`:
+- `README.md` - Main submission overview
+- `UNISWAP_V4.md` - AntiRugHook details
+- `CIRCLE_ARC.md` - Circle/USDC integration
+- `ENS_INTEGRATION.md` - ENS subdomain system
+- `ARCHITECTURE.md` - System architecture diagrams
+- `DEMO_SCRIPT.md` - 3-minute demo video script
+
+---
 
 ## ✅ COMPLETED
 

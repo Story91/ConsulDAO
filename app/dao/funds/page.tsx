@@ -8,19 +8,21 @@ import {
     Flame,
     History,
     DollarSign,
-    Loader2
+    Loader2,
+    RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-// Mock treasury data
-const TREASURY = {
-    balance: 50000,
-    consulBalance: 5000000,
-    totalRaised: 75000,
-    totalBurned: 250000,
-    buybacksExecuted: 3
-};
+import { Badge } from "@/components/ui/badge";
+import { 
+    useTreasuryBalance, 
+    useBuybackStats, 
+    useConsulBalance, 
+    useFundraiserStats,
+    formatUSDC,
+    formatConsul
+} from "@/hooks/useTreasury";
+import { DEPLOYED_ADDRESSES } from "@/lib/deployed-addresses";
 
 // Mock contribution history
 const CONTRIBUTIONS = [
@@ -40,25 +42,55 @@ export default function FundsPage() {
     const [isExecutingBuyback, setIsExecutingBuyback] = useState(false);
     const [buybackAmount, setBuybackAmount] = useState("");
 
+    // Real blockchain data
+    const { balance: treasuryBalance, isLoading: isLoadingTreasury, refetch: refetchTreasury } = useTreasuryBalance();
+    const { totalSpent, totalBurned, buybackBalance, isLoading: isLoadingBuyback, refetch: refetchBuyback } = useBuybackStats();
+    const { balance: consulBalance, isLoading: isLoadingConsul, refetch: refetchConsul } = useConsulBalance(DEPLOYED_ADDRESSES.hubDAO);
+    const { totalRaised, goal, isLive, finalized, isLoading: isLoadingFundraiser, refetch: refetchFundraiser } = useFundraiserStats();
+
+    const isLoading = isLoadingTreasury || isLoadingBuyback || isLoadingConsul || isLoadingFundraiser;
+
+    const handleRefresh = () => {
+        refetchTreasury();
+        refetchBuyback();
+        refetchConsul();
+        refetchFundraiser();
+    };
+
     const handleBuyback = async () => {
         setIsExecutingBuyback(true);
-        // Simulate buyback
+        // TODO: Implement real buyback transaction
         await new Promise(resolve => setTimeout(resolve, 2000));
         setIsExecutingBuyback(false);
         setBuybackAmount("");
+        handleRefresh();
     };
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold flex items-center gap-3">
-                    <Coins className="w-8 h-8 text-amber-500" />
-                    Treasury & Fundraising
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                    Manage DAO treasury, view contributions, and execute buybacks.
-                </p>
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold flex items-center gap-3">
+                        <Coins className="w-8 h-8 text-amber-500" />
+                        Treasury & Fundraising
+                    </h1>
+                    <p className="text-muted-foreground mt-2 flex items-center gap-2">
+                        Manage DAO treasury, view contributions, and execute buybacks.
+                        <Badge variant="outline" className="text-xs">
+                            Live Data from Base Sepolia
+                        </Badge>
+                    </p>
+                </div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                >
+                    <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                    Refresh
+                </Button>
             </div>
 
             {/* Stats Row */}
@@ -69,11 +101,15 @@ export default function FundsPage() {
                             <div className="p-2 rounded-lg bg-green-100">
                                 <DollarSign className="w-5 h-5 text-green-600" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-sm text-muted-foreground">USDC Balance</p>
-                                <p className="text-2xl font-bold text-green-700">
-                                    ${TREASURY.balance.toLocaleString()}
-                                </p>
+                                {isLoadingTreasury ? (
+                                    <Loader2 className="w-5 h-5 animate-spin text-green-700 mt-1" />
+                                ) : (
+                                    <p className="text-2xl font-bold text-green-700">
+                                        {formatUSDC(treasuryBalance)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -85,11 +121,15 @@ export default function FundsPage() {
                             <div className="p-2 rounded-lg bg-primary/10">
                                 <Coins className="w-5 h-5 text-primary" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-sm text-muted-foreground">$CONSUL Held</p>
-                                <p className="text-2xl font-bold">
-                                    {(TREASURY.consulBalance / 1000000).toFixed(1)}M
-                                </p>
+                                {isLoadingConsul ? (
+                                    <Loader2 className="w-5 h-5 animate-spin text-primary mt-1" />
+                                ) : (
+                                    <p className="text-2xl font-bold">
+                                        {formatConsul(consulBalance)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -101,11 +141,15 @@ export default function FundsPage() {
                             <div className="p-2 rounded-lg bg-blue-100">
                                 <TrendingUp className="w-5 h-5 text-blue-600" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-sm text-muted-foreground">Total Raised</p>
-                                <p className="text-2xl font-bold">
-                                    ${TREASURY.totalRaised.toLocaleString()}
-                                </p>
+                                {isLoadingFundraiser ? (
+                                    <Loader2 className="w-5 h-5 animate-spin text-blue-600 mt-1" />
+                                ) : (
+                                    <p className="text-2xl font-bold">
+                                        {formatUSDC(totalRaised)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -117,11 +161,15 @@ export default function FundsPage() {
                             <div className="p-2 rounded-lg bg-orange-100">
                                 <Flame className="w-5 h-5 text-orange-600" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <p className="text-sm text-muted-foreground">$CONSUL Burned</p>
-                                <p className="text-2xl font-bold text-orange-700">
-                                    {(TREASURY.totalBurned / 1000).toLocaleString()}K
-                                </p>
+                                {isLoadingBuyback ? (
+                                    <Loader2 className="w-5 h-5 animate-spin text-orange-700 mt-1" />
+                                ) : (
+                                    <p className="text-2xl font-bold text-orange-700">
+                                        {formatConsul(totalBurned)}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
