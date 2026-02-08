@@ -1,131 +1,161 @@
 # ConsulDAO - Hackathon Implementation Plan
 
+**Last Updated**: 2026-02-08
+
 ## 🎯 Strategy: "The Autonomous Incubator"
 
 **Goal**: Build a **Vertical Slice** - one polished user flow that demos every sponsor feature in 5 minutes.
 
-Instead of building the whole DAO platform, we build **one specific flow**: An AI Agent that incubates one project, gives it an identity (ENS), manages its budget (Arc/Circle), and launches its token (Uniswap v4).
+An AI Agent that incubates projects, gives them identity (ENS), manages budget (Arc/Circle), and launches tokens (Uniswap v4) with anti-rug protection.
 
 ---
 
 ## 📊 Prize Targets
 
-| Sponsor | Prize Pool | Integration |
-|---------|------------|-------------|
-| 🔷 ENS | $5,000 | Subdomain minting + text records |
-| 🔵 Arc/Circle | $10,000 | USDC treasury + CCTP cross-chain |
-| 🦄 Uniswap v4 | $10,000 | Anti-Rug Hook |
-| 🟡 Yellow Network | $15,000 | State channels (bonus if time) |
-| 🔘 Base/OnchainKit | N/A | Already integrated |
+| Sponsor | Prize Pool | Integration | Status |
+|---------|------------|-------------|--------|
+| 🦄 Uniswap v4 | $10,000 | Anti-Rug Hook | ✅ Deployed |
+| 🔵 Arc/Circle | $10,000 | USDC treasury + CCTP | ✅ Integrated |
+| 🔷 ENS | $5,000 | Subdomain minting | ✅ Implemented |
+| 🟡 Yellow Network | $15,000 | State channels | ⏳ Bonus |
+| 🔘 Base/OnchainKit | N/A | Wallet + Identity | ✅ Done |
 
 **Total Potential: ~$40,000+**
 
 ---
 
-## ✅ Current Implementation Status
+## ✅ Implementation Status
 
-### Completed Features
+### Smart Contracts (8 deployed to Base Sepolia)
 
-| Feature | Files | Status |
+| Contract | Address | Purpose |
+|----------|---------|---------|
+| ConsulToken | `0xf1a699d7...` | ERC20Votes governance token |
+| HubDAO | `0x0104f0a2...` | Treasury management |
+| ConsulStaking | `0xfdAB9063...` | Lock tokens for voting power |
+| Buyback | `0x75A606b7...` | USDC→CONSUL swap & burn |
+| Fundraiser | `0xA93B4229...` | USDC fundraising with refunds |
+| Squads | `0xECc9A86e...` | Team management |
+| ProjectRegistry | `0x83C0dA3f...` | Project registration |
+| AntiRugHook | `0xDF2AC968...` | Uniswap v4 vesting hook |
+
+### Frontend
+
+| Feature | Route | Status |
 |---------|-------|--------|
-| **Professional Landing Page** | `app/page.tsx`, `components/Hero.tsx`, etc. | ✅ Done |
-| **AI Incubator Chat Interface** | `app/incubator/page.tsx` | ✅ Done |
-| **Chat Components** | `components/chat/*` | ✅ Done |
-| **Agent API** | `app/api/agent/route.ts` | ✅ Done |
-| **Agent Utilities** | `lib/agent.ts` | ✅ Done |
-| **ENS Integration** | `lib/ens.ts` | ✅ Done |
-| **Circle/Arc Integration** | `lib/circle.ts` | ✅ Done |
-| **Contract ABIs** | `lib/contracts.ts` | ✅ Done |
-| **AntiRugHook Contract** | `contracts/AntiRugHook.sol` | ✅ Done |
-| **HubDAO Contract** | `contracts/HubDAO.sol` | ✅ Done |
+| Landing Page | `/` | ✅ Done |
+| AI Incubator | `/incubator` | ✅ Done |
+| DAO Overview | `/dao` | ✅ Done |
+| Governance | `/dao/governance` | ✅ Done |
+| Squads | `/dao/squads` | ✅ Done |
+| Treasury | `/dao/funds` | ✅ Done (live data) |
 
-### Project Structure
+### Integrations
+
+| Integration | Files | Status |
+|-------------|-------|--------|
+| ENS | `lib/ens.ts`, `hooks/useENS.ts` | ✅ Multi-chain ready |
+| Circle | `lib/circle.ts`, `hooks/useTreasury.ts` | ✅ Live balance display |
+| OnchainKit | `app/rootProvider.tsx` | ✅ Wallet + Identity |
+| Network Switching | `components/NetworkSwitcher.tsx` | ✅ Sepolia ↔ Base Sepolia |
+
+---
+
+## 📁 Project Structure
 
 ```
 ConsulDAO/
 ├── app/
 │   ├── api/agent/route.ts      # Agent API endpoint
-│   ├── incubator/page.tsx      # Chat interface for AI agent
+│   ├── incubator/page.tsx      # AI chat interface
+│   ├── dao/                    # DAO dashboard pages
 │   ├── page.tsx                # Landing page
-│   ├── globals.css             # Professional styling
-│   └── layout.tsx, rootProvider.tsx
+│   └── rootProvider.tsx        # OnchainKit + Wagmi
 ├── components/
 │   ├── chat/                   # Chat UI components
-│   │   ├── ChatMessage.tsx
-│   │   ├── ChatInput.tsx
-│   │   └── IncubationStatus.tsx
-│   ├── Hero.tsx, Features.tsx, CTA.tsx, Footer.tsx, Navbar.tsx
+│   ├── NetworkSwitcher.tsx     # Chain switching
 │   └── ui/                     # shadcn components
-├── contracts/
-│   ├── AntiRugHook.sol         # Uniswap v4 Hook (Anti-Rug)
-│   └── HubDAO.sol              # DAO Treasury
+├── contracts/                  # All 8 Solidity contracts
+├── hooks/
+│   ├── useENS.ts               # ENS operations
+│   ├── useTreasury.ts          # Treasury data
+│   └── useProjectRegistry.ts   # Project management
 ├── lib/
-│   ├── agent.ts                # Agent logic & types
-│   ├── circle.ts               # Circle/Arc USDC integration
-│   ├── contracts.ts            # Contract ABIs
-│   ├── ens.ts                  # ENS subdomain utilities
-│   └── utils.ts
-└── docs/
-    ├── IMPLEMENTATION_PLAN.md  # This file - main plan
-    ├── INTEGRATION_GUIDES.md   # Quick reference for integrations
-    └── hackathon_plan.md       # Original strategy (reference)
+│   ├── deployed-addresses.ts   # All contract addresses
+│   ├── contracts.ts            # ABIs
+│   ├── ens.ts                  # ENS utilities
+│   ├── circle.ts               # USDC utilities
+│   └── wagmi.ts                # Multi-chain config
+├── docs/                       # Development documentation
+└── submission/                 # Judge-facing documentation
+    ├── README.md
+    ├── UNISWAP_V4.md
+    ├── CIRCLE_ARC.md
+    ├── ENS_INTEGRATION.md
+    ├── ARCHITECTURE.md
+    └── DEMO_SCRIPT.md
 ```
 
 ---
 
 ## 🚀 Demo Flow
 
-The AI Agent guides users through the complete incubation process:
+The AI Agent guides users through incubation:
 
 ```
 1. User: "Start my project called XYZ"
 2. Agent creates session → xyz.consul.eth
-3. User: "Begin incubation"
-4. Agent executes:
-   ├── Step 1: 🔷 Mint ENS Identity
-   ├── Step 2: 💰 Setup USDC Treasury
-   ├── Step 3: 🟡 Open Yellow Channel (optional)
-   ├── Step 4: ✅ Approve Budget
-   ├── Step 5: 🦄 Deploy Uniswap Pool
-   └── Step 6: 🔒 Lock with Anti-Rug Hook
-5. Project launched! 🎉
+
+3. User clicks "Mint ENS Identity"
+   → Switch to Sepolia
+   → Mint subdomain
+   → Set text records
+
+4. Project registered in DAO
+   → Treasury setup (USDC)
+   → Token deployment ready
+
+5. Uniswap pool with AntiRugHook
+   → Founder sells blocked during vesting!
 ```
 
 ---
 
 ## 📅 Remaining Tasks
 
-### Priority 1: Contract Deployment (Day 1)
+### ✅ Completed
+- [x] Deploy all 8 contracts to Base Sepolia
+- [x] Contract verification on Basescan
+- [x] Security audit fixes (4 High issues resolved)
+- [x] Multi-chain setup (Sepolia + Base Sepolia)
+- [x] ENS hooks with network switching
+- [x] Treasury hooks with live blockchain data
+- [x] Submission folder with judge docs
 
-- [ ] Deploy HubDAO to Base Sepolia
-- [ ] Deploy AntiRugHook to Base Sepolia
-- [ ] Update contract addresses in `lib/contracts.ts`
-- [ ] Test contract interactions
+### ⏳ Pending - Priority 1
 
-### Priority 2: Real ENS Integration (Day 1-2)
+1. **Test ENS on Sepolia**
+   - [ ] Get Sepolia ETH from faucet
+   - [ ] Test subdomain minting
+   - [ ] Document transaction hash
 
-- [ ] Implement actual ENS subdomain minting
-- [ ] Store project manifest in text records
-- [ ] Add ENS resolution in chat interface
+2. **Test AntiRugHook**
+   - [ ] Create test pool
+   - [ ] Attempt founder sell → should REVERT
+   - [ ] Document blocked transaction
 
-### Priority 3: Real Circle Integration (Day 2)
+3. **Demo Video** (CRITICAL!)
+   - [ ] Record 3-minute demo
+   - [ ] Script in `submission/DEMO_SCRIPT.md`
 
-- [ ] Add Circle API key configuration
-- [ ] Implement USDC balance checking
-- [ ] Add cross-chain transfer functionality
+### ⏳ Pending - Priority 2 (Bonus)
 
-### Priority 4: Demo Video (Day 3)
+4. **Yellow Network** ($15,000)
+   - [ ] Research Nitrolite SDK
+   - [ ] Implement state channel demo
 
-- [ ] Record 3-minute demo video
-- [ ] Show ENS minting
-- [ ] Show Anti-Rug Hook rejecting founder dump
-- [ ] Show treasury operations
-
-### Bonus: Yellow Network (If time permits)
-
-- [ ] Integrate Nitrolite SDK
-- [ ] Open state channel for micro-agreements
-- [ ] Show gasless operations
+5. **CCTP Cross-Chain**
+   - [ ] Test USDC bridge Base → Arbitrum
 
 ---
 
@@ -133,112 +163,81 @@ The AI Agent guides users through the complete incubation process:
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Next.js 15, React 19, Tailwind CSS |
-| UI Components | shadcn/ui |
+| Frontend | Next.js 15, React 19, TypeScript |
+| Styling | Tailwind CSS, shadcn/ui |
 | Wallet | OnchainKit (Coinbase) |
-| Blockchain | Base L2 (Sepolia testnet) |
-| Smart Contracts | Solidity 0.8.24, Hardhat |
-| Agent | Custom agent logic (simulated for MVP) |
+| State | Wagmi, TanStack Query |
+| Contracts | Solidity 0.8.24, Hardhat |
+| L2 | Base Sepolia |
+| ENS | Ethereum Sepolia |
 
 ---
 
-## 🔑 Environment Variables Needed
+## 🔑 Environment Variables
 
 ```env
-# OnchainKit
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=
+# Required
+NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_key
 
-# Deployed Contracts
-NEXT_PUBLIC_HUB_DAO_ADDRESS=
-NEXT_PUBLIC_ANTI_RUG_HOOK_ADDRESS=
+# Optional
+CIRCLE_API_KEY=your_circle_key
 
-# Circle (for real USDC integration)
-CIRCLE_API_KEY=
-
-# ENS (optional - for mainnet)
-NEXT_PUBLIC_ENS_PARENT_DOMAIN=consul.eth
+# Contract addresses are in lib/deployed-addresses.ts
+# No env vars needed for contracts
 ```
-
----
-
-## 📹 Demo Video Script (3 minutes)
-
-**0:00 - 0:30**: "DAOs are slow. We made them Agentic."
-- Show the beautiful landing page
-- Click "Launch with AI Agent"
-
-**0:30 - 1:00**: Show the Chat Interface
-- Type "Start my project called DeFiDAO"
-- Agent creates session with ENS: `defidao.consul.eth`
-
-**1:00 - 1:30**: Show the Incubation Flow
-- Click "Begin incubation"
-- Agent mints ENS ✅
-- Agent sets up treasury ✅
-- Agent deploys pool ✅
-
-**1:30 - 2:00**: Show the Anti-Rug Hook
-- Try to sell founder tokens → BLOCKED 🔴
-- "Vesting period active: 365 days remaining"
-
-**2:00 - 2:30**: Show Circle Treasury
-- Display USDC balance
-- Show cross-chain payment capability
-
-**2:30 - 3:00**: Summary
-- "From idea to token launch in minutes"
-- "On-chain vesting at DEX level"
-- "Autonomous treasury management"
 
 ---
 
 ## 🏆 Prize Submission Checklist
 
 ### ENS ($5,000)
-- [x] Subdomain generation: `projectname.consul.eth`
-- [x] Text record utilities for metadata
+- [x] Custom ENS code (not RainbowKit)
+- [x] Subdomain generation utilities
+- [x] Text record support
+- [x] Multi-chain setup (Sepolia for ENS)
 - [ ] Actual minting transaction
-- [ ] Demo video showing ENS usage
+- [ ] Demo video
 
 ### Uniswap v4 ($10,000)
-- [x] AntiRugHook.sol with beforeSwap hook
-- [x] Founder vesting logic (cliff + linear)
-- [ ] Deploy to testnet
-- [ ] Demo video showing blocked founder sell
+- [x] AntiRugHook.sol deployed
+- [x] beforeSwap vesting logic
+- [x] Security fixes applied
+- [x] README.md (`submission/UNISWAP_V4.md`)
+- [ ] TxID showing blocked sell
+- [ ] Demo video
 
 ### Arc/Circle ($10,000)
-- [x] USDC address configuration
-- [x] CCTP utilities for cross-chain
-- [x] Payment request types
-- [ ] Actual Circle API integration
-- [ ] Demo video showing treasury
+- [x] USDC treasury contracts
+- [x] Buyback & burn mechanism
+- [x] Live balance display
+- [x] Architecture diagram
+- [ ] CCTP demo
+- [ ] Demo video
 
-### Yellow Network ($15,000) - BONUS
-- [ ] Nitrolite SDK integration
-- [ ] State channel management
-- [ ] Off-chain micro-agreements
+### Yellow Network ($15,000) - Bonus
+- [ ] Nitrolite SDK
+- [ ] State channel demo
 
 ---
 
-## 🎯 What We Cut (Intentionally)
+## 📹 Demo Video (3 minutes)
 
-These were removed to focus on the vertical slice:
+See full script: `submission/DEMO_SCRIPT.md`
 
-- ❌ SquadRegistry.sol - Not needed for MVP
-- ❌ Complex voting system - Yellow Channel replaces it
-- ❌ Talent marketplace - AI Agent is the talent
-- ❌ Legal escrow - Simplified to treasury
-- ❌ Multiple squad types - Single Agent handles all
+| Time | Content |
+|------|---------|
+| 0:00-0:30 | Problem + Solution intro |
+| 0:30-1:00 | ENS identity minting |
+| 1:00-1:30 | AntiRugHook blocking sell |
+| 1:30-2:00 | Circle treasury |
+| 2:00-2:30 | DAO dashboard |
+| 2:30-3:00 | Summary + tech stack |
 
 ---
 
 ## 📝 Notes
 
-1. **Agent is simulated** - For hackathon, agent actions are scripted. Real LLM integration would come later.
-
-2. **Contracts need deployment** - AntiRugHook requires Uniswap v4 infrastructure on testnet.
-
-3. **ENS subdomains** - Real minting requires owning a parent domain or using testnet ENS.
-
-4. **Demo is key** - Judges may not run code. Video quality matters!
-
+1. **Multi-chain is working** - Sepolia for ENS, Base Sepolia for contracts
+2. **Agent is simulated** - Scripted actions for hackathon demo
+3. **Demo is key** - Judges may not run code, video quality matters!
+4. **All contracts verified** - Check on Basescan

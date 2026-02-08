@@ -60,14 +60,19 @@ export function normalizeENSName(name: string): string {
   }
 }
 
+// Parent domain for ConsulDAO subdomains
+// On testnet (Sepolia): consultest.eth (owned by us)
+// On mainnet: consul.eth (would need to register)
+export const CONSUL_PARENT_DOMAIN = process.env.NEXT_PUBLIC_ENS_PARENT_DOMAIN || "consultest.eth";
+
 /**
  * Generate subdomain for a project
  * @param projectName - Project name (will be slugified)
- * @param parentDomain - Parent domain (default: consul.eth)
+ * @param parentDomain - Parent domain (default: consultest.eth on testnet)
  */
 export function generateProjectSubdomain(
   projectName: string,
-  parentDomain: string = "consul.eth"
+  parentDomain: string = CONSUL_PARENT_DOMAIN
 ): string {
   // Slugify project name: lowercase, replace spaces with hyphens, remove special chars
   const slug = projectName

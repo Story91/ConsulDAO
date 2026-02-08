@@ -14,7 +14,7 @@ const features = [
   },
   {
     title: "ENS Identity",
-    description: "Instant brand identity with projectname.consul.eth subdomain and on-chain metadata storage.",
+    description: "Instant brand identity with projectname.consultest.eth subdomain and on-chain metadata storage.",
     icon: Target,
     badge: "ENS",
     color: "accent",

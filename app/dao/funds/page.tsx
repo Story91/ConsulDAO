@@ -44,9 +44,9 @@ export default function FundsPage() {
 
     // Real blockchain data
     const { balance: treasuryBalance, isLoading: isLoadingTreasury, refetch: refetchTreasury } = useTreasuryBalance();
-    const { totalSpent, totalBurned, buybackBalance, isLoading: isLoadingBuyback, refetch: refetchBuyback } = useBuybackStats();
+    const { totalSpent: _totalSpent, totalBurned, buybackBalance: _buybackBalance, isLoading: isLoadingBuyback, refetch: refetchBuyback } = useBuybackStats();
     const { balance: consulBalance, isLoading: isLoadingConsul, refetch: refetchConsul } = useConsulBalance(DEPLOYED_ADDRESSES.hubDAO);
-    const { totalRaised, goal, isLive, finalized, isLoading: isLoadingFundraiser, refetch: refetchFundraiser } = useFundraiserStats();
+    const { totalRaised, goal: _goal, isLive: _isLive, finalized: _finalized, isLoading: isLoadingFundraiser, refetch: refetchFundraiser } = useFundraiserStats();
 
     const isLoading = isLoadingTreasury || isLoadingBuyback || isLoadingConsul || isLoadingFundraiser;
 

@@ -19,9 +19,9 @@ import {
   INCUBATION_FLOW,
   formatUSDC,
 } from "@/lib/agent";
-import { useRegisterProject, isContractDeployed } from "@/hooks/useProjectRegistry";
+import { useRegisterProject } from "@/hooks/useProjectRegistry";
 import { useENSRegistration } from "@/hooks/useENS";
-import { createProjectManifest, generateProjectSubdomain } from "@/lib/ens";
+import { createProjectManifest } from "@/lib/ens";
 import {
   Rocket,
   Sparkles,
@@ -41,7 +41,12 @@ export default function IncubatorPage() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
-  const isWrongNetwork = isConnected && chainId !== baseSepolia.id;
+  
+  // Accept both networks - Sepolia for ENS, Base Sepolia for contracts
+  const isSupportedNetwork = chainId === baseSepolia.id || chainId === sepolia.id;
+  const isWrongNetwork = isConnected && !isSupportedNetwork;
+  const isOnSepolia = chainId === sepolia.id;
+  const isOnBaseSepolia = chainId === baseSepolia.id;
 
   // ENS Resolution - reads from Ethereum mainnet automatically
   const { data: ensName } = useEnsName({
@@ -71,9 +76,9 @@ export default function IncubatorPage() {
   // ENS Registration Hook - REAL ENS transaction on Sepolia
   const {
     registerProject: registerENS,
-    status: ensStatus,
+    status: _ensStatus,
     txHash: ensTxHash,
-    isConfirming: isENSConfirming,
+    isConfirming: _isENSConfirming,
     isSuccess: isENSSuccess,
     error: ensError,
     reset: resetENS
@@ -81,13 +86,13 @@ export default function IncubatorPage() {
 
   // Project Registry Hook - Base Sepolia (fallback)
   const {
-    registerProject,
+    registerProject: _registerProject,
     status: _registrationStatus,
-    txHash: registrationTxHash,
+    txHash: _registrationTxHash,
     isConfirming: _isRegistrationConfirming,
-    isSuccess: isRegistrationSuccess,
-    error: registrationError,
-    reset: resetRegistration
+    isSuccess: _isRegistrationSuccess,
+    error: _registrationError,
+    reset: _resetRegistration
   } = useRegisterProject();
 
   // Auto-scroll to bottom when new messages arrive
@@ -168,13 +173,19 @@ export default function IncubatorPage() {
 
       setPendingAction(action);
 
-      // Generate ENS name
-      const ensName = session.ensName || generateProjectSubdomain(session.projectName);
+      // Generate project slug and full ENS name
+      const projectSlug = session.projectName
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .slice(0, 32);
+      
+      const fullEnsName = `${projectSlug}.consultest.eth`;
 
       // Show wallet prompt message
       const walletMessage = createChatMessage(
         "agent",
-        `🔷 **Registering ENS on Sepolia**\n\nENS Name: \`${ensName}\`\n\nPlease approve the transaction in your wallet...\n\n⏳ Waiting for wallet signature...`
+        `🔷 **Registering ENS on Sepolia**\n\nENS Name: \`${fullEnsName}\`\n\nPlease approve the transaction in your wallet...\n\n⏳ Waiting for wallet signature...`
       );
       setMessages((prev) => [...prev, walletMessage]);
 
@@ -186,10 +197,10 @@ export default function IncubatorPage() {
           stage: session.stage,
         });
 
-        console.log("[executeAction] Calling registerENS with:", ensName);
+        console.log("[executeAction] Calling registerENS with slug:", projectSlug);
 
         await registerENS({
-          ensName,
+          projectSlug,
           projectManifest: manifest,
           founderAddress: address,
         });
@@ -322,7 +333,7 @@ export default function IncubatorPage() {
       if (lowerContent.includes("how") && lowerContent.includes("work")) {
         const response = createChatMessage(
           "agent",
-          `**How ConsulDAO Incubation Works:**\n\n1️⃣ **Setup** - Choose ENS name, treasury & vesting\n2️⃣ **Mint ENS** - Get yourproject.consul.eth\n3️⃣ **Treasury** - Setup USDC funding\n4️⃣ **Channels** - Open payment channels\n5️⃣ **Liquidity** - Deploy Uniswap v4 pool\n6️⃣ **Anti-Rug** - Lock founder tokens\n\nReady? Say "Start my project"!`
+          `**How ConsulDAO Incubation Works:**\n\n1️⃣ **Setup** - Choose ENS name, treasury & vesting\n2️⃣ **Mint ENS** - Get yourproject.consultest.eth\n3️⃣ **Treasury** - Setup USDC funding\n4️⃣ **Channels** - Open payment channels\n5️⃣ **Liquidity** - Deploy Uniswap v4 pool\n6️⃣ **Anti-Rug** - Lock founder tokens\n\nReady? Say "Start my project"!`
         );
         setMessages((prev) => [...prev, response]);
         setIsLoading(false);
@@ -396,18 +407,40 @@ export default function IncubatorPage() {
       <Navbar />
 
       {/* Wrong Network Warning */}
-      {isWrongNetwork && (
-        <div className="fixed top-16 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 flex items-center justify-center gap-4">
-          <span className="font-medium">
-            ⚠️ Wrong network! Please switch to Base Sepolia to use the incubator.
+      {/* Network Info Banner - shows current network and what each is for */}
+      {isConnected && isSupportedNetwork && (
+        <div className={`fixed top-16 left-0 right-0 z-50 px-4 py-2 flex items-center justify-center gap-4 ${
+          isOnSepolia ? "bg-blue-500 text-white" : "bg-purple-500 text-white"
+        }`}>
+          <span className="text-sm">
+            {isOnSepolia 
+              ? "🔷 Sepolia — Ready for ENS subdomain minting" 
+              : "🟣 Base Sepolia — Ready for DAO contracts"}
           </span>
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => switchChain({ chainId: baseSepolia.id })}
+            onClick={() => switchChain({ chainId: isOnSepolia ? baseSepolia.id : sepolia.id })}
+            className="bg-white/20 hover:bg-white/30 text-white border-0 text-xs"
+          >
+            Switch to {isOnSepolia ? "Base Sepolia" : "Sepolia"}
+          </Button>
+        </div>
+      )}
+      
+      {/* Wrong Network Warning - only for unsupported networks */}
+      {isWrongNetwork && (
+        <div className="fixed top-16 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 flex items-center justify-center gap-4">
+          <span className="font-medium">
+            ⚠️ Unsupported network! Please switch to Sepolia (ENS) or Base Sepolia (Contracts).
+          </span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => switchChain({ chainId: sepolia.id })}
             className="bg-white text-amber-600 hover:bg-amber-50"
           >
-            Switch to Base Sepolia
+            Switch to Sepolia
           </Button>
         </div>
       )}

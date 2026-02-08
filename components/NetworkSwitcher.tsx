@@ -1,10 +1,16 @@
 "use client";
 
-import { useChainId, useSwitchChain } from "wagmi";
+import { useChainId, useSwitchChain, useAccount } from "wagmi";
 import { sepolia, baseSepolia } from "wagmi/chains";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AlertCircle, CheckCircle2, ChevronDown, Globe } from "lucide-react";
 
 interface NetworkSwitcherProps {
   requiredChainId: number;
@@ -90,6 +96,83 @@ export function NetworkBadge() {
     <Badge variant="outline" className={`${color} border-0`}>
       {name}
     </Badge>
+  );
+}
+
+/**
+ * Quick network switcher dropdown for navbar
+ */
+export function QuickNetworkSwitcher() {
+  const { isConnected } = useAccount();
+  const chainId = useChainId();
+  const { switchChain, isPending } = useSwitchChain();
+
+  if (!isConnected) {
+    return null;
+  }
+
+  const networks = [
+    {
+      id: baseSepolia.id,
+      name: "Base Sepolia",
+      description: "Contracts & DAO",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+    {
+      id: sepolia.id,
+      name: "Sepolia",
+      description: "ENS Names",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+    },
+  ];
+
+  const currentNetwork = networks.find((n) => n.id === chainId) || networks[0];
+
+  const handleSwitch = async (networkId: number) => {
+    if (networkId === chainId) return;
+    try {
+      await switchChain({ chainId: networkId });
+    } catch (error) {
+      console.error("Failed to switch network:", error);
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`${currentNetwork.bgColor} ${currentNetwork.color} border-0 gap-1.5 font-medium`}
+          disabled={isPending}
+        >
+          <Globe className="w-3.5 h-3.5" />
+          {isPending ? "Switching..." : currentNetwork.name}
+          <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        {networks.map((network) => (
+          <DropdownMenuItem
+            key={network.id}
+            onClick={() => handleSwitch(network.id)}
+            className={`flex items-center justify-between cursor-pointer ${
+              network.id === chainId ? "bg-muted" : ""
+            }`}
+          >
+            <div>
+              <div className={`font-medium ${network.color}`}>{network.name}</div>
+              <div className="text-xs text-muted-foreground">{network.description}</div>
+            </div>
+            {network.id === chainId && (
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

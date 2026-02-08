@@ -23,7 +23,7 @@ const projects = [
   {
     id: "1",
     name: "DeFi Nexus",
-    ensName: "definexus.consul.eth",
+    ensName: "definexus.consultest.eth",
     description: "Cross-chain yield aggregator with AI-powered portfolio optimization. Automatically rebalances across 10+ chains.",
     logo: "🔮",
     stage: "launched",
@@ -38,7 +38,7 @@ const projects = [
   {
     id: "2",
     name: "NFT Forge",
-    ensName: "nftforge.consul.eth",
+    ensName: "nftforge.consultest.eth",
     description: "No-code NFT collection builder with on-chain royalties and gasless minting on Base.",
     logo: "🎨",
     stage: "launched",
@@ -53,7 +53,7 @@ const projects = [
   {
     id: "3",
     name: "PayStream",
-    ensName: "paystream.consul.eth",
+    ensName: "paystream.consultest.eth",
     description: "Real-time salary streaming for DAOs. Pay contributors by the second with USDC.",
     logo: "💸",
     stage: "launching",
@@ -68,7 +68,7 @@ const projects = [
   {
     id: "4",
     name: "GreenDAO",
-    ensName: "greendao.consul.eth",
+    ensName: "greendao.consultest.eth",
     description: "Carbon credit marketplace with on-chain verification. Trade and retire credits transparently.",
     logo: "🌱",
     stage: "incubating",
@@ -83,7 +83,7 @@ const projects = [
   {
     id: "5",
     name: "SocialFi Hub",
-    ensName: "socialfihub.consul.eth",
+    ensName: "socialfihub.consultest.eth",
     description: "Decentralized social platform with token-gated communities and creator monetization.",
     logo: "🌐",
     stage: "incubating",
@@ -98,7 +98,7 @@ const projects = [
   {
     id: "6",
     name: "GameVault",
-    ensName: "gamevault.consul.eth",
+    ensName: "gamevault.consultest.eth",
     description: "Cross-game inventory system. Own your gaming assets across multiple titles.",
     logo: "🎮",
     stage: "screening",

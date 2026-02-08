@@ -5,11 +5,17 @@ import dynamic from "next/dynamic";
 import { Wallet } from "@coinbase/onchainkit/wallet";
 import { Rocket } from "lucide-react";
 
-// Dynamic import for PillNav to avoid SSR issues with GSAP
+// Dynamic imports to avoid SSR issues
 const PillNav = dynamic(() => import("./PillNav"), {
   ssr: false,
   loading: () => <div className="h-[42px]" />,
 });
+
+// Dynamic import for NetworkSwitcher to avoid wagmi SSR issues
+const QuickNetworkSwitcher = dynamic(
+  () => import("./NetworkSwitcher").then((mod) => mod.QuickNetworkSwitcher),
+  { ssr: false }
+);
 
 const navItems = [
   { label: "Home", href: "/" },
@@ -72,8 +78,14 @@ export function Navbar() {
           onMobileMenuClick={() => {}}
         />
 
-        {/* Wallet - Right side, absolute positioned */}
-        <div className="absolute right-0 top-0 hidden md:block">
+        {/* Wallet + Network Switcher - Right side, absolute positioned */}
+        <div className="absolute right-0 top-0 hidden md:flex items-center gap-2">
+          <QuickNetworkSwitcher />
+          <Wallet />
+        </div>
+        
+        {/* Mobile Wallet */}
+        <div className="absolute right-0 top-0 md:hidden">
           <Wallet />
         </div>
       </div>

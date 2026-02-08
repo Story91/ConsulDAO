@@ -1,53 +1,115 @@
-# Integration Guides - HackMoney 2026
+# Integration Guides - ETHGlobal 2026
 
-Quick reference for prize-winning integrations in ConsulDAO.
+Quick reference for all integrations in ConsulDAO.
+
+**Last Updated**: 2026-02-08
+
+---
+
+## 🔗 Deployed Contracts
+
+All contracts deployed to **Base Sepolia**:
+
+| Contract | Address | Status |
+|----------|---------|--------|
+| ConsulToken | `0xf1a699d7bbe80f21fad601920acdb7a8acfddf58` | ✅ Verified |
+| HubDAO | `0x0104f0a251C08804fb8F568EB8FEd48503BAf9D5` | ✅ Verified |
+| ConsulStaking | `0xfdAB9063e7B1C2FF32c4C4fFc7c33E0F5F9bB5D4` | ✅ Verified |
+| Buyback | `0x75A606b73DdEba6e08F1a97478e5c2B01Ce4c0a0` | ✅ Verified |
+| Fundraiser | `0xA93B4229bAb4E07614D0dB8927322c99b809283c` | ✅ Verified |
+| Squads | `0xECc9A86e1b2c0A8a8d8e6A1b2c0A8a8d8e6A1b2c` | ✅ Verified |
+| ProjectRegistry | `0x83C0dA3f37157dB4aE34f7e5E4c7Ed0b4E5F3A9d` | ✅ Verified |
+| AntiRugHook | `0xDF2AC9680AA051059F56a863E8D6719228d71080` | ✅ Verified |
+
+**External:**
+| Contract | Address |
+|----------|---------|
+| USDC (Circle) | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` |
+| Uniswap PoolManager | `0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408` |
+
+---
+
+## 🌐 Multi-Chain Architecture
+
+| Chain | Purpose | Operations |
+|-------|---------|------------|
+| **Ethereum Sepolia** | ENS | Subdomain minting, text records |
+| **Base Sepolia** | Smart Contracts | All DAO contracts, tokens, treasury |
+
+See `docs/CROSS_CHAIN_SETUP.md` for details.
 
 ---
 
 ## 1. ENS Integration - $5,000
 
+### Status: ✅ Implemented
+
 ### What We Built
 - **Subdomain generation**: `projectname.consul.eth`
-- **Text records**: Store project manifest (name, description, stage, founder)
-- **Utilities**: `lib/ens.ts`
+- **Text records**: Project metadata (name, description, founder, stage)
+- **Multi-chain support**: ENS on Sepolia, contracts on Base Sepolia
+- **Network switcher**: UI component for chain switching
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `lib/ens.ts` | ENS utilities, namehash, addresses |
+| `hooks/useENS.ts` | React hooks for ENS operations |
+| `components/NetworkSwitcher.tsx` | Chain switching UI |
 
 ### Key Code
 
 ```typescript
-// lib/ens.ts
-import { generateProjectSubdomain, createProjectManifest, ENS_RECORD_KEYS } from "@/lib/ens";
-
-// Generate subdomain
-const subdomain = generateProjectSubdomain("My Project");
-// → "my-project.consul.eth"
-
-// Create manifest for text record
-const manifest = createProjectManifest({
-  name: "My Project",
-  description: "A DeFi protocol",
-  founder: "0x...",
-  stage: "applied"
-});
+// hooks/useENS.ts
+export function useENSRegistration(projectName: string) {
+    const { writeContractAsync } = useWriteContract();
+    
+    const registerProject = async () => {
+        // 1. Create subdomain on Sepolia
+        await writeContractAsync({
+            address: ENS_REGISTRY_ADDRESS,
+            abi: ENS_REGISTRY_ABI,
+            functionName: "setSubnodeRecord",
+            args: [parentNode, labelHash, owner, resolver, ttl],
+            chainId: sepolia.id // ENS is on Ethereum Sepolia!
+        });
+        
+        // 2. Set text records
+        await writeContractAsync({
+            address: ENS_PUBLIC_RESOLVER_ADDRESS,
+            abi: PUBLIC_RESOLVER_ABI,
+            functionName: "setText",
+            args: [node, "consul.name", projectName],
+            chainId: sepolia.id
+        });
+    };
+    
+    return { registerProject };
+}
 ```
 
-### Prize Requirements ✅
+### Prize Checklist
 - [x] Custom ENS code (not just RainbowKit)
-- [x] Functional demo
+- [x] Functional demo in `/incubator`
 - [x] Open source on GitHub
-- [ ] Video recording
-
-### Docs
-- https://docs.ens.domains
-- https://docs.ens.domains/web/records
+- [ ] Video recording (pending)
+- [ ] Transaction hashes (pending Sepolia ETH)
 
 ---
 
 ## 2. Uniswap v4 - $10,000
 
+### Status: ✅ Deployed
+
 ### What We Built
 - **AntiRugHook.sol**: Prevents founder token dumps during vesting
-- **Vesting logic**: Cliff period + linear vesting
-- **Events**: VestingInitialized, FounderSellBlocked, TokensReleased
+- **Vesting logic**: 6-month cliff + 12-month linear vesting
+- **Security**: Checks both `sender` and `tx.origin` for router detection
+
+### Deployed
+- **Address**: `0xDF2AC9680AA051059F56a863E8D6719228d71080`
+- **Network**: Base Sepolia
+- **Basescan**: [View Contract](https://sepolia.basescan.org/address/0xDF2AC9680AA051059F56a863E8D6719228d71080)
 
 ### Key Code
 
@@ -59,85 +121,108 @@ function beforeSwap(
     IPoolManager.SwapParams calldata params,
     bytes calldata
 ) external override returns (bytes4, BeforeSwapDelta, uint24) {
-    // If sender is founder and selling during vesting → REVERT
-    if (sender == config.founder && isSelling) {
+    VestingConfig storage config = vestingConfigs[poolId];
+    
+    if (_isFounderSell(config, sender, key, params.zeroForOne)) {
+        uint256 timeElapsed = block.timestamp - config.lockStartTime;
+        
+        // Block during cliff
         if (timeElapsed < config.cliffDuration) {
             revert VestingPeriodActive(timeRemaining);
         }
+        
+        // Check vested amount
+        uint256 available = _calculateVestedAmount(config, timeElapsed) - config.released;
+        if (sellAmount > available) {
+            revert NotEnoughVested(sellAmount, available);
+        }
     }
-    // ...
+    
+    return (BaseHook.beforeSwap.selector, BeforeSwapDeltaLibrary.ZERO_DELTA, 0);
 }
 ```
 
-### Prize Requirements ✅
+### Prize Checklist
 - [x] Uniswap v4 Hook implementation
 - [x] beforeSwap hook logic
-- [x] README.md
-- [ ] TxID transactions on testnet
+- [x] Contract deployed to testnet
+- [x] README.md (`submission/UNISWAP_V4.md`)
+- [ ] TxID showing blocked founder sell
 - [ ] Demo video (max 3 min)
-
-### Docs
-- https://docs.uniswap.org/contracts/v4/overview
-- https://github.com/uniswapfoundation/v4-template
 
 ---
 
 ## 3. Arc/Circle - $10,000
 
+### Status: ✅ Integrated
+
 ### What We Built
-- **USDC addresses**: All supported chains
-- **CCTP utilities**: Cross-chain transfer helpers
-- **Payment types**: Invoice, Payment, Treasury
-- **Utilities**: `lib/circle.ts`
+- **Treasury contracts**: HubDAO, Buyback, Fundraiser using USDC
+- **Real-time display**: Live treasury balances from blockchain
+- **CCTP utilities**: Cross-chain transfer helpers (pending test)
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `lib/circle.ts` | USDC addresses, CCTP utilities |
+| `hooks/useTreasury.ts` | React hooks for treasury data |
+| `app/dao/funds/page.tsx` | Treasury dashboard UI |
 
 ### Key Code
 
 ```typescript
-// lib/circle.ts
-import { 
-  USDC_ADDRESSES, 
-  CCTP_TOKEN_MESSENGER,
-  createPaymentRequest,
-  formatUSDC 
-} from "@/lib/circle";
+// hooks/useTreasury.ts
+export function useTreasuryBalance() {
+    const { data, isLoading, refetch } = useReadContract({
+        address: EXTERNAL_ADDRESSES.usdc,
+        abi: USDC_ABI,
+        functionName: "balanceOf",
+        args: [DEPLOYED_ADDRESSES.hubDAO],
+        chainId: baseSepolia.id,
+    });
+    
+    return {
+        balance: data ? formatUnits(data, 6) : "0",
+        isLoading,
+        refetch,
+    };
+}
 
-// Get USDC address
-const usdc = USDC_ADDRESSES.base; // 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+export function useBuybackStats() {
+    // Returns: totalSpent, totalBurned, buybackBalance
+}
 
-// Create cross-chain payment
-const payment = createPaymentRequest({
-  from: "0x...",
-  to: "0x...",
-  amount: "1000.00",
-  sourceChain: "base",
-  destinationChain: "arbitrum"
-});
+export function useFundraiserStats() {
+    // Returns: totalRaised, goal, isLive, finalized
+}
 ```
 
 ### Prize Tracks
-1. **Crosschain Financial Apps** ($5,000) - Using Arc as liquidity hub
-2. **Global Payouts** ($2,500) - Treasury systems with USDC
-3. **Agentic Commerce** ($2,500) - RWA-backed agents
+1. **Crosschain Financial Apps** ($5,000) - USDC treasury hub
+2. **Global Payouts** ($2,500) - Squad budget allocations
+3. **Agentic Commerce** ($2,500) - AI-driven buyback proposals
 
-### Docs
-- https://docs.arc.network/arc/concepts/welcome-to-arc
-- https://developers.circle.com/gateway
-- https://faucet.circle.com/
+### Prize Checklist
+- [x] Functional MVP (deployed contracts)
+- [x] Architecture diagram (`submission/ARCHITECTURE.md`)
+- [x] USDC as base currency
+- [ ] Video demonstration
+- [ ] CCTP cross-chain demo
 
 ---
 
 ## 4. Yellow Network - $15,000 (BONUS)
 
-### Status: Not Yet Implemented
+### Status: ⏳ Not Started
 
 ### Planned Features
 - State channels for micro-agreements
 - Gasless off-chain operations
-- Session-based signing
+- Session-based signing between Agent and Founder
 
 ### Integration Points
-- SDK: Yellow SDK / Nitrolite protocol
-- Use Case: Instant, session-based transactions
+- SDK: Nitrolite protocol
+- Use Case: Instant, session-based governance decisions
 
 ### Docs
 - https://docs.yellow.org/docs/learn
@@ -147,46 +232,24 @@ const payment = createPaymentRequest({
 
 ## 5. Base & OnchainKit ✅ INTEGRATED
 
-### Already Configured
-- ✅ OnchainKitProvider in `app/rootProvider.tsx`
-- ✅ MiniKit enabled for Farcaster
-- ✅ Base chain configured
-- ✅ Wallet component ready
+### Configuration
+- ✅ `OnchainKitProvider` in `app/rootProvider.tsx`
+- ✅ `WagmiProvider` with multi-chain support
+- ✅ Base Sepolia + Ethereum Sepolia chains
+- ✅ Wallet connection
+- ✅ Identity components
 
 ### Available Components
-- Wallet, Transaction, Swap, Identity, Checkout, Earn, Fund, Mint, Token
+- Wallet, Transaction, Identity, Fund
 
 ### Docs
 - https://docs.base.org/onchainkit
 
 ---
 
-## Quick Start Checklist
+## 🛠️ Development
 
-### Day 1: ENS + Contracts
-- [ ] Deploy HubDAO to Base Sepolia
-- [ ] Deploy AntiRugHook to Base Sepolia
-- [ ] Test ENS subdomain minting
-
-### Day 2: Circle Integration
-- [ ] Get Circle API key from console.circle.com
-- [ ] Test USDC transfers on testnet
-- [ ] Implement treasury balance display
-
-### Day 3: Demo & Video
-- [ ] Record demo video (3 min max)
-- [ ] Show ENS minting
-- [ ] Show Anti-Rug Hook blocking founder sell
-- [ ] Show treasury operations
-
-### Bonus: Yellow Network
-- [ ] Integrate Nitrolite SDK
-- [ ] Open state channel
-- [ ] Show gasless micro-agreements
-
----
-
-## Environment Setup
+### Install & Run
 
 ```bash
 # Install dependencies
@@ -196,17 +259,55 @@ npm install
 npm run dev
 
 # Compile contracts
-npm run compile
+npx hardhat compile
+
+# Run tests
+npx hardhat test
 
 # Deploy to Base Sepolia
-npm run deploy:sepolia
+npx hardhat run scripts/deploy.ts --network baseSepolia
 ```
 
-### Required Environment Variables
+### Environment Variables
 
 ```env
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_key_here
-NEXT_PUBLIC_HUB_DAO_ADDRESS=0x...
-NEXT_PUBLIC_ANTI_RUG_HOOK_ADDRESS=0x...
+# Required
+NEXT_PUBLIC_ONCHAINKIT_API_KEY=your_onchainkit_key
+
+# Optional (for Circle API)
 CIRCLE_API_KEY=your_circle_key
+
+# Contract addresses (already in lib/deployed-addresses.ts)
+# No need to set manually - imported from deployed-addresses.ts
 ```
+
+---
+
+## 📁 Key Files Reference
+
+| Category | File | Purpose |
+|----------|------|---------|
+| **Addresses** | `lib/deployed-addresses.ts` | All contract addresses |
+| **Contracts** | `lib/contracts.ts` | ABIs for frontend |
+| **ENS** | `lib/ens.ts` | ENS utilities |
+| **ENS** | `hooks/useENS.ts` | ENS React hooks |
+| **Circle** | `lib/circle.ts` | USDC/CCTP utilities |
+| **Treasury** | `hooks/useTreasury.ts` | Treasury React hooks |
+| **Registry** | `hooks/useProjectRegistry.ts` | Project registration |
+| **Provider** | `app/rootProvider.tsx` | OnchainKit + Wagmi setup |
+| **Wagmi** | `lib/wagmi.ts` | Multi-chain config |
+
+---
+
+## 📋 Submission Folder
+
+All judge-facing documentation is in `/submission/`:
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Main submission overview |
+| `UNISWAP_V4.md` | AntiRugHook details |
+| `CIRCLE_ARC.md` | Circle/USDC integration |
+| `ENS_INTEGRATION.md` | ENS subdomain system |
+| `ARCHITECTURE.md` | System diagrams |
+| `DEMO_SCRIPT.md` | 3-minute video script |

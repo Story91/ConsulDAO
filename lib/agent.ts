@@ -261,11 +261,11 @@ export function generateAgentResponse(
   switch (session.conversationStep) {
     case "ask_ens_name": {
       // User is providing ENS name
-      const ensInput = lowerMessage.replace(/\.consul\.eth$/, "").replace(/[^a-z0-9-]/g, "");
+      const ensInput = lowerMessage.replace(/\.consultest\.eth$/, "").replace(/\.consul\.eth$/, "").replace(/[^a-z0-9-]/g, "");
       
       if (!ensInput || ensInput.length < 3) {
         return {
-          message: "Please provide a valid name (at least 3 characters, letters and numbers only).\n\nExample: \"myproject\" → myproject.consul.eth",
+          message: "Please provide a valid name (at least 3 characters, letters and numbers only).\n\nExample: \"myproject\" → myproject.consultest.eth",
           suggestions: ["defi-hub", "nft-marketplace", "dao-tools"],
         };
       }
@@ -277,7 +277,9 @@ export function generateAgentResponse(
         };
       }
       
-      const fullEnsName = `${ensInput}.consul.eth`;
+      // On testnet: consultest.eth (owned by us)
+      // On mainnet: consul.eth (would need to register)
+      const fullEnsName = `${ensInput}.consultest.eth`;
       
       return {
         message: `✅ Great choice! Your ENS identity will be: **${fullEnsName}**\n\nNow, how much USDC would you like to allocate to your treasury?\n\nThis will be used for:\n• Development costs\n• Marketing\n• Initial liquidity\n\nEnter amount in USD (minimum $1,000):`,
