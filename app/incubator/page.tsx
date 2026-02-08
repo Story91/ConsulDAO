@@ -46,7 +46,6 @@ export default function IncubatorPage() {
   const isSupportedNetwork = chainId === baseSepolia.id || chainId === sepolia.id;
   const isWrongNetwork = isConnected && !isSupportedNetwork;
   const isOnSepolia = chainId === sepolia.id;
-  const isOnBaseSepolia = chainId === baseSepolia.id;
 
   // ENS Resolution - reads from Ethereum mainnet automatically
   const { data: ensName } = useEnsName({
