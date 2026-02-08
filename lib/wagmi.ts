@@ -1,12 +1,14 @@
 import { http, createConfig } from "wagmi";
-import { baseSepolia, sepolia } from "wagmi/chains";
+import { baseSepolia, sepolia, mainnet } from "wagmi/chains";
 import { coinbaseWallet, injected, walletConnect } from "wagmi/connectors";
 
 // WalletConnect project ID (get from cloud.walletconnect.com)
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, sepolia],
+  // Note: mainnet is included for ENS name resolution (read-only)
+  // Primary chains are baseSepolia (contracts) and sepolia (ENS registration)
+  chains: [baseSepolia, sepolia, mainnet],
   connectors: [
     injected(),
     coinbaseWallet({
@@ -25,6 +27,7 @@ export const wagmiConfig = createConfig({
   transports: {
     [baseSepolia.id]: http("https://sepolia.base.org"),
     [sepolia.id]: http("https://ethereum-sepolia-rpc.publicnode.com"),
+    [mainnet.id]: http("https://ethereum-rpc.publicnode.com"),
   },
 });
 

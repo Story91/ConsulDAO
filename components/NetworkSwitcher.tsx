@@ -43,7 +43,7 @@ export function NetworkSwitcher({
 
   const handleSwitch = async () => {
     try {
-      await switchChain({ chainId: requiredChainId });
+      await switchChain({ chainId: requiredChainId as 1 | 11155111 | 84532 });
       onSwitchSuccess?.();
     } catch (error) {
       console.error("Failed to switch network:", error);
@@ -133,7 +133,7 @@ export function QuickNetworkSwitcher() {
   const handleSwitch = async (networkId: number) => {
     if (networkId === chainId) return;
     try {
-      await switchChain({ chainId: networkId });
+      await switchChain({ chainId: networkId as 1 | 11155111 | 84532 });
     } catch (error) {
       console.error("Failed to switch network:", error);
     }

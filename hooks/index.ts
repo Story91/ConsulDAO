@@ -4,9 +4,9 @@
 
 export {
   useENSTextRecord,
-  useSetENSTextRecord,
+  useENSOwner,
   useENSRegistration,
-  useENSAvailability,
+  useSubdomainAvailability,
   getNamehash,
 } from "./useENS";
 
