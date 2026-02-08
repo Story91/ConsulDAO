@@ -202,13 +202,13 @@ export default function FundsPage() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setBuybackAmount(TREASURY.balance.toString())}
+                                    onClick={() => setBuybackAmount(treasuryBalance.toString())}
                                 >
                                     Max
                                 </Button>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Available: ${TREASURY.balance.toLocaleString()} USDC
+                                Available: {formatUSDC(treasuryBalance)} USDC
                             </p>
                         </div>
 
